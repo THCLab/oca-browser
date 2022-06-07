@@ -61,24 +61,14 @@
 const modules = [
   [
     {
-      title: 'Home',
-      icon: 'home',
+      title: 'Develop',
+      icon: 'architecture',
       path: '/'
     },
     {
-      title: 'Schemas',
-      icon: 'list_alt',
-      path: '/schemas'
-    },
-    {
-      title: 'Standards',
-      icon: 'text_snippet',
-      path: '/standards'
-    },
-    {
-      title: 'Tools',
-      icon: 'architecture',
-      path: '/tools'
+      title: 'Preview',
+      icon: 'preview',
+      path: '/preview'
     },
     {
       title: 'Settings',

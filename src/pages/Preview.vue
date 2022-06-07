@@ -33,6 +33,7 @@
 
       <div class="row">
         <div class="col-12">
+          {{ parsingResult }}
           <q-spinner v-if="loading" color="primary" size="5em" />
           <div class="q-gutter-y-md" style="max-width: 100vw; width: 100%">
             <q-card v-if="htmlOCAForm || htmlOCACredential">
@@ -93,7 +94,7 @@ import { renderOCAForm, renderOCACredential } from 'oca.js-form-html'
 import { AxiosInstance } from 'axios'
 
 export default defineComponent({
-  name: 'Home',
+  name: 'Preview',
   setup() {
     const $store = useStore()
     const defaultLanguage = $store.state.settings.language
@@ -105,6 +106,7 @@ export default defineComponent({
       .$ocaJs as OcaJs
     const $axios = currentInstance.appContext.config.globalProperties
       .$axios as AxiosInstance
+    const parsingResult = ref('')
     const file = ref()
     const namespace = ref('')
     const publishResult = ref('')
@@ -118,6 +120,9 @@ export default defineComponent({
     const ocaRepoHostUrl = $store.state.settings.ocaRepositoryUrls[0]
 
     watch(file, async newFile => {
+      htmlOCACredential.value = null
+      htmlOCAForm.value = null
+      parsingResult.value = ''
       loading.value = true
       try {
         const oca = await resolveFromZip(newFile)
@@ -155,6 +160,7 @@ export default defineComponent({
           tab.value = 'credential'
         }
       } catch (e) {
+        parsingResult.value = 'Failure! Open dev console for more information'
         console.error(e)
       } finally {
         loading.value = false
@@ -180,6 +186,7 @@ export default defineComponent({
     return {
       htmlOCAForm,
       htmlOCACredential,
+      parsingResult,
       defaultLanguage,
       loading,
       credentialWidth,
