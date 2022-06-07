@@ -118,8 +118,7 @@ export default defineComponent({
     const formLayoutFile = ref()
     const convertionResult = ref('')
 
-    // const ocaConverterUrl = 'https://tool.oca.argo.colossi.network'
-    const ocaConverterUrl = 'http://localhost:9292'
+    const ocaConverterUrl = 'https://tool.oca.argo.colossi.network'
 
     /* eslint-disable */
     const convert = async () => {
