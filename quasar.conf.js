@@ -160,8 +160,8 @@ module.exports = configure(function (ctx) {
       },
 
       manifest: {
-        name: 'OCA Editor',
-        short_name: 'OCA Editor',
+        name: 'OCA Browser',
+        short_name: 'OCA Browser',
         description: 'Tool allowing to play with unify data language (OCA)',
         display: 'standalone',
         orientation: 'portrait',

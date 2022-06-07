@@ -14,7 +14,7 @@
 
         <q-btn v-if="$q.screen.gt.xs" flat no-caps no-wrap class="q-ml-xs">
           <q-toolbar-title shrink class="text-weight-bold">
-            OCA Editor
+            OCA Browser
           </q-toolbar-title>
         </q-btn>
 

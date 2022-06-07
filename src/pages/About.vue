@@ -1,7 +1,7 @@
 <template>
   <q-page class="row q-pa-md justify-evenly">
     <div>
-      OCA Editor allows you to design and create own Overlay Capture
+      OCA Browser allows you to develop and preview own Overlay Capture
       Architecture for your data sets. If you want to learn more about OCA
       please visit
       <a href="https://oca.colossi.network" target="_blank"

@@ -1,4 +1,4 @@
-# OCA Editor (oca-editor)
+# OCA Browser (oca-browser)
 
 Tool allowing to play with unify data language (OCA)
 
