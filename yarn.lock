@@ -4658,23 +4658,23 @@ obuf@^1.0.0, obuf@^1.1.2:
   resolved "https://registry.yarnpkg.com/obuf/-/obuf-1.1.2.tgz#09bea3343d41859ebd446292d11c9d4db619084e"
   integrity sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==
 
-oca.js-form-core@^0.0.23:
-  version "0.0.23"
-  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.0.23.tgz#4b55cc7f322c395b842df9dd9dbbdbc5d20b7f69"
-  integrity sha512-/fgvYDe9SloTNfn8juBg9dgV9ti+rFftpYmLg2IE0Ugi1NPB7+YL9RojaOroFlKxvfgHUxnp4Om42IGll2Ciiw==
+oca.js-form-core@^0.0.24:
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.0.24.tgz#759d068ada99dcdf6c5e600b8d0317ca0ccd2e81"
+  integrity sha512-/GtM9a5z02ZI+37x6W7VOD+UAK61/XWJNJno+sL7qIoGZbYZQ9o1CLBbzY+bYJboimiMYxvPvqrSJYolD91LzA==
   dependencies:
     axios "^0.24.0"
     jszip "^3.7.1"
     oca.js "0.1.38"
 
-oca.js-form-html@^0.0.17:
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.0.17.tgz#5407619c789d8cb83ad43ef6f8b35464e57fc1b8"
-  integrity sha512-gychcpV3HPftEgsj99yooltwQLNHZ8Hk9ve9dAbsnTaZ0d/WCFiPw9Y98pZKXWBd0EO1TsvTcSZd91zV7RrTAA==
+oca.js-form-html@^0.0.18:
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.0.18.tgz#5170d40bffa4140af57239307060fe17ddc5b96c"
+  integrity sha512-ABpM85umUOK8Kywh/J+I8gvP5za5e4j1p+X24NiXBliI4Snvbrf8NT1IS4o8S40gXplZotOwv6KIQCP7quwtYA==
   dependencies:
     "@types/jsdom" "^16.2.14"
     jsdom "^19.0.0"
-    oca.js-form-core "^0.0.23"
+    oca.js-form-core "^0.0.24"
 
 oca.js-form-quasar@^0.0.6:
   version "0.0.6"

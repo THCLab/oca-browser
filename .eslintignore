@@ -9,3 +9,4 @@ quasar.conf.js
 babel.config.js
 /src-ssr
 /src/boot
+/public/config.template.js

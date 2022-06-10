@@ -1,3 +1,5 @@
+import { Config } from '@/types/config'
+
 export interface SettingsStateInterface {
   dataVaultUrls: string[]
   ocaRepositoryUrls: string[]
@@ -5,11 +7,19 @@ export interface SettingsStateInterface {
 }
 
 function state(): SettingsStateInterface {
+  /* eslint-disable */
   return {
-    dataVaultUrls: ['https://data-vault.argo.colossi.network/api/v2/files'],
-    ocaRepositoryUrls: ['https://repository.oca.argo.colossi.network'],
-    language: 'en'
+    // @ts-ignore
+    dataVaultUrls: (config as Config)
+      .env.DATA_VAULT_URLS.split(','),
+    // @ts-ignore
+    ocaRepositoryUrls: (config as Config)
+      .env.OCA_REPOSITORY_URLS.split(','),
+    // @ts-ignore
+    language: (config as Config)
+      .env.DEFAULT_LANGUAGE
   }
+  /* eslint-enable */
 }
 
 export default state
