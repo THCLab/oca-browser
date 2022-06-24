@@ -23,7 +23,45 @@
           @filter="filterFn" />
 
         <q-card-section>
-          <div class="text-subtitle1">OCA Repositories</div>
+          <div class="row items-center">
+            <div class="text-subtitle1">OCA Repositories</div>
+            <q-btn
+              color="grey"
+              round
+              flat
+              dense
+              :icon="ocaRepoHelpExpanded ? 'help_outline' : 'help'"
+              @click="ocaRepoHelpExpanded = !ocaRepoHelpExpanded" />
+          </div>
+
+          <q-slide-transition>
+            <div v-show="ocaRepoHelpExpanded">
+              <q-separator />
+              <q-card-section class="text-subitle2">
+                OCA Repository is a component for storing and sharing OCA
+                objects freely. True object interoperability suggests that an
+                object's storage location needs not to be the primary focus but
+                instead the file content. OCA follows a content centric
+                networking (CCN) approach with a Self-Addressing Identifiers
+                (SAID) referencing each object.
+                <br /><br />Learn more
+                <a
+                  target="_blank"
+                  href="https://oca.colossi.network/guide/oca-ecosystem.html#oca-repository"
+                  >here</a
+                >
+                or
+                <a
+                  target="_blank"
+                  href="https://oca.colossi.network/tools/oca-repository.html"
+                  >here</a
+                >.
+              </q-card-section>
+            </div>
+          </q-slide-transition>
+
+          <q-separator />
+
           <div
             v-for="(_, i) in ocaRepositoryUrls"
             :key="i"
@@ -51,7 +89,36 @@
         </q-card-section>
 
         <q-card-section>
-          <div class="text-subtitle1">Data Vaults</div>
+          <div class="row items-center">
+            <div class="text-subtitle1">Data Vaults</div>
+            <q-btn
+              color="grey"
+              round
+              flat
+              dense
+              :icon="dataVaultHelpExpanded ? 'help_outline' : 'help'"
+              @click="dataVaultHelpExpanded = !dataVaultHelpExpanded" />
+          </div>
+
+          <q-slide-transition>
+            <div v-show="dataVaultHelpExpanded">
+              <q-separator />
+              <q-card-section class="text-subitle2">
+                OCA Data Vault is a simple PoC data storage implementation
+                showcasing how to consume and provide data described by OCA.
+
+                <br /><br />Learn more
+                <a
+                  target="_blank"
+                  href="https://oca.colossi.network/guide/oca-ecosystem.html#oca-data-vault"
+                  >here</a
+                >.
+              </q-card-section>
+            </div>
+          </q-slide-transition>
+
+          <q-separator />
+
           <div
             v-for="(_, i) in dataVaultUrls"
             :key="i"
@@ -92,6 +159,8 @@ export default defineComponent({
   setup() {
     const $store = useStore()
     const languages = ref(l)
+    const ocaRepoHelpExpanded = ref(true)
+    const dataVaultHelpExpanded = ref(true)
 
     const ocaRepositoryUrls = ref(
       $store.state.settings.ocaRepositoryUrls.map(el => ref(el))
@@ -145,6 +214,8 @@ export default defineComponent({
       defaultLanguage,
       languages,
       filterFn,
+      ocaRepoHelpExpanded,
+      dataVaultHelpExpanded,
       ocaRepositoryUrls,
       addOcaRepositoryUrl,
       removeOcaRepositoryUrl,

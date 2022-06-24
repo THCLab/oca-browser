@@ -6,7 +6,7 @@
         <div class="col-4">
           <q-file
             v-model="file"
-            label="Pick OCA zip file"
+            label="Pick OCA Bundle zip file"
             accept=".zip"
             filled />
         </div>
@@ -20,7 +20,28 @@
               @click="publish">
               Publish
             </q-btn>
+
+            <q-btn
+              color="grey"
+              round
+              flat
+              dense
+              :icon="publishHelpExpanded ? 'help_outline' : 'help'"
+              @click="publishHelpExpanded = !publishHelpExpanded" />
           </div>
+
+          <q-slide-transition>
+            <div v-show="publishHelpExpanded">
+              <q-separator />
+              <div class="q-py-sm text-subitle2">
+                Publish in given namespace selected OCA Bundle to all OCA
+                Repositories set in <a href="/#/settings">Settings</a> page.
+              </div>
+            </div>
+          </q-slide-transition>
+
+          <q-separator />
+
           <div class="row">
             <!-- eslint-disable vue/no-v-html -->
             <span v-html="publishResult"></span>
@@ -29,7 +50,7 @@
         </div>
       </div>
 
-      <q-separator /><br />
+      <br />
 
       <div class="row">
         <div class="col-12">
@@ -108,6 +129,7 @@ export default defineComponent({
       .$axios as AxiosInstance
     const parsingResult = ref('')
     const file = ref()
+    const publishHelpExpanded = ref(true)
     const namespace = ref('')
     const publishResult = ref('')
     const loading = ref(false)
@@ -179,7 +201,7 @@ export default defineComponent({
           publishResult.value += `${i}: Success! <a href="${publishResponse.data.path}">Click here to open</a><br>`
         } else {
           console.error(publishResponse.data.errors)
-          publishResult.value += '${i}: Failure! Open dev console for more information<br>'
+          publishResult.value += `${i}: Failure! Open dev console for more information<br>`
         }
         /* eslint-enable */
       }
@@ -195,6 +217,7 @@ export default defineComponent({
       credentialHeight,
       tab,
       publish,
+      publishHelpExpanded,
       publishResult,
       namespace,
       file
