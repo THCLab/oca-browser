@@ -117,7 +117,7 @@ export default defineComponent({
     const credentialHeight = ref('0')
     const tab = ref('form')
 
-    const ocaRepoHostUrl = $store.state.settings.ocaRepositoryUrls[0]
+    const ocaRepoHostUrls = $store.state.settings.ocaRepositoryUrls
 
     watch(file, async newFile => {
       htmlOCACredential.value = null
@@ -134,7 +134,7 @@ export default defineComponent({
             {
               defaultLanguage,
               dataVaultUrl: $store.state.settings.dataVaultUrls[0],
-              ocaRepoHostUrl
+              ocaRepoHostUrl: ocaRepoHostUrls[0]
             }
           )
           htmlOCACredential.value = credential.node
@@ -168,19 +168,21 @@ export default defineComponent({
     })
 
     const publish = async () => {
-      const requestUrl = `${ocaRepoHostUrl}/api/v0.1/namespaces/${namespace.value}/schemas`
-      const formData = new FormData()
-      formData.append('file', file.value)
+      for (const [i, ocaRepoHostUrl] of ocaRepoHostUrls.entries()) {
+        const requestUrl = `${ocaRepoHostUrl}/api/v0.1/namespaces/${namespace.value}/schemas`
+        const formData = new FormData()
+        formData.append('file', file.value)
 
-      const publishResponse = await $axios.post(requestUrl, formData)
-      /* eslint-disable */
-      if (publishResponse.data.success) {
-        publishResult.value = `Success! <a href="${publishResponse.data.path}">Click here to open</a>`
-      } else {
-        console.error(publishResponse.data.errors)
-        publishResult.value = 'Failure! Open dev console for more information'
+        const publishResponse = await $axios.post(requestUrl, formData)
+        /* eslint-disable */
+        if (publishResponse.data.success) {
+          publishResult.value += `${i}: Success! <a href="${publishResponse.data.path}">Click here to open</a><br>`
+        } else {
+          console.error(publishResponse.data.errors)
+          publishResult.value += '${i}: Failure! Open dev console for more information<br>'
+        }
+        /* eslint-enable */
       }
-      /* eslint-enable */
     }
 
     return {
