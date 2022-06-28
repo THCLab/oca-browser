@@ -54,7 +54,9 @@
 
       <div class="row">
         <div class="col-12">
-          {{ parsingResult }}
+          <!-- eslint-disable vue/no-v-html -->
+          <span v-html="parsingResult"></span>
+          <!-- eslint-enable vue/no-v-html -->
           <q-spinner v-if="loading" color="primary" size="5em" />
           <div class="q-gutter-y-md" style="max-width: 100vw; width: 100%">
             <q-card v-if="htmlOCAForm || htmlOCACredential">
@@ -182,7 +184,8 @@ export default defineComponent({
           tab.value = 'credential'
         }
       } catch (e) {
-        parsingResult.value = 'Failure! Open dev console for more information'
+        parsingResult.value += '<div style="color: #FC100D">Failure!</div>'
+        parsingResult.value += e
         console.error(e)
       } finally {
         loading.value = false
