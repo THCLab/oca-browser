@@ -135,17 +135,16 @@ export default defineComponent({
         formData.append('formLayoutFile', formLayoutFile.value)
       }
 
-      try {
-        const response = await $axios.post(ocaConverterUrl, formData)
-        const responseResult = response.data
-        if (responseResult.success) {
-          convertionResult.value = `Success! <a href="${ocaConverterUrl}/${responseResult.filename}">Click here to download OCA Bundle</a>`
-        } else {
-          throw responseResult.error
-        }
-      } catch (e) {
-        console.error(e)
-        convertionResult.value = `Failure! Open dev console for more informaion`
+      const response = await $axios.post(ocaConverterUrl, formData)
+      const responseResult = response.data
+      if (responseResult.success) {
+        convertionResult.value = `Success! <a href="${ocaConverterUrl}/${responseResult.filename}">Click here to download OCA Bundle</a>`
+      } else {
+        const errors: string[] = responseResult.errors
+        console.error(errors)
+        convertionResult.value = 'Failure! Fix those errors and try again: <ul>'
+        errors.forEach(e => convertionResult.value += `<li>${e}</li>`)
+        convertionResult.value += '</ul>'
       }
     }
     /* eslint-enable */
