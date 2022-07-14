@@ -136,6 +136,7 @@ export default defineComponent({
       }
 
       const response = await $axios.post(ocaConverterUrl, formData)
+      resetForm()
       const responseResult = response.data
       if (responseResult.success) {
         convertionResult.value = `Success! <a href="${ocaConverterUrl}/${responseResult.filename}">Click here to download OCA Bundle</a>`
@@ -148,6 +149,13 @@ export default defineComponent({
       }
     }
     /* eslint-enable */
+
+    const resetForm = () => {
+      rootFile.value = null
+      referenceFiles.value = []
+      credentialLayoutFile.value = null
+      formLayoutFile.value = null
+    }
 
     return {
       convert,
