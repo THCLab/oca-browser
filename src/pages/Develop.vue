@@ -25,7 +25,7 @@
               <li>
                 <b>OCA file [required] (XLS/XLSX)</b><br />
                 <a
-                  href="https://github.com/THCLab/oca-rust/raw/main/tests/assets/oca_template.xlsx">
+                  href="https://github.com/THCLab/oca-ecosystem/raw/main/examples/template.xlsx">
                   Download template</a
                 >.
               </li>
