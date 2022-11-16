@@ -4667,10 +4667,10 @@ oca.js-form-core@^0.1.1:
     jszip "^3.7.1"
     oca.js "0.2.1"
 
-oca.js-form-core@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.2.0.tgz#31436a368fa70c78ce779055148a0f923e4be3ad"
-  integrity sha512-w3ymICMINhqr5knt6vmbuQ77FJbMKCYPkxuW9sHwqxJh4LTJ6nvVKQ1tq/++6lOlEgLqgwCX2VTlSxkt0/vhNQ==
+oca.js-form-core@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.2.1.tgz#31d55aa2e25727a7843f91621aa2a136fae06ec3"
+  integrity sha512-uuA2KlYeG95k+lim9IABNpYXTacHaM4meIzJcD0hrhUhrORUnsJY2VBS6imQvTwmL8sm8IoOMUQT2vdT7oN0mQ==
   dependencies:
     axios "^0.24.0"
     jszip "^3.7.1"
