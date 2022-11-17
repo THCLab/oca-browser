@@ -151,7 +151,10 @@ export default defineComponent({
       try {
         const oca = await resolveFromZip(newFile)
         const structure = await $ocaJs.createStructure(oca)
-        if (structure.credentialLayout) {
+        if (
+          structure.credentialLayout &&
+          !structure.controls.some(c => c.type == 'Reference')
+        ) {
           const credential = await renderOCACredential(
             structure,
             {},
