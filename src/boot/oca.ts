@@ -1,7 +1,9 @@
 import { boot } from 'quasar/wrappers'
+import init_oca_js from 'oca.js'
 import init, { OcaJs } from 'oca.js-form-core'
 
 export default boot(async ({ app, store }) => {
+  await init_oca_js()
   await init()
 
   const ocaJs = new OcaJs({

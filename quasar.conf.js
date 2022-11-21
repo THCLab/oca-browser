@@ -89,7 +89,9 @@ module.exports = configure(function (ctx) {
             [{
               patterns: [
                 { context: 'node_modules/oca.js-form-core/dist', from: '*.wasm', to: './js' },
-                { context: 'node_modules/oca.js-form-core/dist', from: '*.wasm' }
+                { context: 'node_modules/oca.js-form-core/dist', from: '*.wasm' },
+                { context: 'node_modules/oca.js/web', from: '*.wasm', to: './js' },
+                { context: 'node_modules/oca.js/web', from: '*.wasm' }
               ]
             }]
           )
