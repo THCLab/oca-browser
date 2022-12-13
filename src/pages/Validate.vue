@@ -28,10 +28,42 @@
         <div class="col-12">
           <q-spinner v-if="loading" color="primary" size="5em" />
 
-          <q-card v-if="resultHTML" class="q-pa-md">
-            <!-- eslint-disable vue/no-v-html -->
-            <span v-html="resultHTML"></span>
-            <!-- eslint-enable vue/no-v-html -->
+          <q-card
+            v-if="!!Object.keys(resultsRef).length && !loading"
+            class="q-pa-md">
+            <div v-for="(value, name, i) in resultsRef" :key="i">
+              <q-separator v-if="i != 0" />
+
+              <q-card-section>
+                <strong>
+                  {{ name }}
+                  <div
+                    style="display: inline"
+                    :style="{
+                      color: value.errors.length > 0 ? '#FC100D' : '#00CC99'
+                    }">
+                    {{ value.errors.length > 0 ? 'invalid' : 'valid' }}
+                  </div>
+                </strong>
+              </q-card-section>
+
+              <div v-if="value.valid">
+                <ul>
+                  Overlays:
+                  <li v-for="(overlay, ov_i) in value.oca.overlays" :key="ov_i">
+                    {{ overlay.type.split('/')[2] }}
+                    {{ overlay.language ? `(${overlay.language})` : '' }}
+                  </li>
+                </ul>
+              </div>
+              <div v-else>
+                <ul>
+                  <li v-for="(error, err_i) in value.errors" :key="err_i">
+                    {{ error }}
+                  </li>
+                </ul>
+              </div>
+            </div>
           </q-card>
         </div>
       </div>
@@ -41,61 +73,59 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { Validator } from 'oca.js'
+import { Validator, OCA } from 'oca.js'
 import { resolveFromZip } from 'oca.js-form-core'
 
 export default defineComponent({
   name: 'Validate',
   setup() {
-    const resultHTML = ref('')
     const files = ref([])
     const loading = ref(false)
+    const resultsRef = ref({})
 
     const validate = async () => {
-      resultHTML.value = ''
       loading.value = true
-      const result: { [key: string]: string[] } = {}
+      const results: {
+        [key: string]: {
+          oca: OCA | Record<string, never>
+          valid: boolean
+          errors: string[]
+        }
+      } = {}
       for (const file of files.value) {
         const validator = new Validator()
         try {
-          const oca = await resolveFromZip(file)
+          const oca: OCA = await resolveFromZip(file)
           const validationResult: {
             success: boolean
             errors: string[]
           } = validator.validate(oca) as { success: boolean; errors: string[] }
           if (validationResult.success) {
-            result[(file as File).name] = []
+            results[(file as File).name] = { oca, valid: true, errors: [] }
           } else {
-            result[(file as File).name] = validationResult.errors.map(
-              e => e.split('at line')[0]
-            )
+            results[(file as File).name] = {
+              oca,
+              valid: false,
+              errors: validationResult.errors.map(e => e.split('at line')[0])
+            }
           }
         } catch (e) {
-          result[(file as File).name] = [e as string]
+          results[(file as File).name] = {
+            oca: {},
+            valid: false,
+            errors: [e as string]
+          }
         }
       }
 
-      Object.entries(result).forEach(([fileName, errors]) => {
-        resultHTML.value += `<br><strong>${fileName}: `
-        if (errors.length == 0) {
-          resultHTML.value +=
-            '<div style="display: inline; color: #00CC99">valid</strong></div>'
-        } else {
-          resultHTML.value +=
-            '<div style="display: inline; color: #FC100D">invalid</strong></div><ul>'
-          errors.forEach(e => {
-            resultHTML.value += `<li>${e}</li>`
-          })
-          resultHTML.value += '</ul>'
-        }
-      })
+      resultsRef.value = results
       loading.value = false
       files.value = []
     }
 
     return {
       validate,
-      resultHTML,
+      resultsRef,
       loading,
       files
     }
