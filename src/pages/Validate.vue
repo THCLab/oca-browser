@@ -48,13 +48,36 @@
               </q-card-section>
 
               <div v-if="value.valid">
-                <ul>
-                  Overlays:
-                  <li v-for="(overlay, ov_i) in value.oca.overlays" :key="ov_i">
-                    {{ overlay.type.split('/')[2] }}
-                    {{ overlay.language ? `(${overlay.language})` : '' }}
-                  </li>
-                </ul>
+                <q-tabs
+                  v-model="value.tab"
+                  dense
+                  class="text-grey"
+                  active-color="primary"
+                  indicator-color="primary"
+                  align="justify"
+                  narrow-indicator>
+                  <q-tab label="Overlays" name="overlays" />
+                  <q-tab label="OCA JSON" name="oca" />
+                </q-tabs>
+
+                <q-tab-panels v-model="value.tab">
+                  <q-tab-panel name="overlays">
+                    <ul>
+                      <li
+                        v-for="(overlay, ov_i) in value.oca.overlays"
+                        :key="ov_i">
+                        {{ overlay.type.split('/')[2] }}
+                        {{ overlay.language ? `(${overlay.language})` : '' }}
+                      </li>
+                    </ul>
+                  </q-tab-panel>
+
+                  <q-tab-panel name="oca">
+                    <json-viewer
+                      :value="value.oca"
+                      :expand-depth="3"></json-viewer>
+                  </q-tab-panel>
+                </q-tab-panels>
               </div>
               <div v-else>
                 <ul>
@@ -76,8 +99,11 @@ import { defineComponent, ref } from 'vue'
 import { Validator, OCA } from 'oca.js'
 import { resolveFromZip } from 'oca.js-form-core'
 
+import JsonViewer from 'vue-json-viewer'
+
 export default defineComponent({
   name: 'Validate',
+  components: { JsonViewer },
   setup() {
     const files = ref([])
     const loading = ref(false)
@@ -88,6 +114,7 @@ export default defineComponent({
       const results: {
         [key: string]: {
           oca: OCA | Record<string, never>
+          tab?: string
           valid: boolean
           errors: string[]
         }
@@ -101,10 +128,16 @@ export default defineComponent({
             errors: string[]
           } = validator.validate(oca) as { success: boolean; errors: string[] }
           if (validationResult.success) {
-            results[(file as File).name] = { oca, valid: true, errors: [] }
+            results[(file as File).name] = {
+              oca,
+              tab: 'overlays',
+              valid: true,
+              errors: []
+            }
           } else {
             results[(file as File).name] = {
               oca,
+              tab: 'overlays',
               valid: false,
               errors: validationResult.errors.map(e => e.split('at line')[0])
             }
