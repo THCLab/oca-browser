@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div class="items-center justify-evenly">
       <div class="row">
-        <div class="col-2" />
+        <div class="col-4" />
         <div class="col-4">
           <q-file
             v-model="files"
@@ -11,15 +11,15 @@
             filled
             multiple />
         </div>
-        <div class="col-2" />
+        <div class="col-1" />
         <div class="col-2">
           <q-btn
             size="lg"
-            label="Validate"
+            label="Check"
             :disable="files.length == 0"
             @click="validate" />
         </div>
-        <div class="col-2" />
+        <div class="col-3" />
       </div>
 
       <br />
@@ -42,8 +42,9 @@
                     :style="{
                       color: value.errors.length > 0 ? '#FC100D' : '#00CC99'
                     }">
-                    {{ value.errors.length > 0 ? 'invalid' : 'valid' }}
+                    {{ value.errors.length > 0 ? 'failed' : 'passed' }}
                   </div>
+                  integrity tests
                 </strong>
               </q-card-section>
 
