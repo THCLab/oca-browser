@@ -84,6 +84,11 @@
           label="Select Form Layout file"
           accept=".yml,.yaml" />
 
+        <q-checkbox
+          v-model="withDataEntry"
+          size="lg"
+          label="Generate Data Entry File" />
+
         <br />
 
         <q-btn color="primary" :disable="!rootFile" @click="convert">
@@ -116,6 +121,7 @@ export default defineComponent({
     const referenceFiles = ref([])
     const credentialLayoutFile = ref()
     const formLayoutFile = ref()
+    const withDataEntry = ref(false)
     const convertionResult = ref('')
 
     const ocaConverterUrl = 'https://tool.oca.argo.colossi.network'
@@ -135,11 +141,16 @@ export default defineComponent({
         formData.append('formLayoutFile', formLayoutFile.value)
       }
 
+      formData.append('withDataEntry', ""+withDataEntry.value)
+
       const response = await $axios.post(ocaConverterUrl, formData)
-      resetForm()
       const responseResult = response.data
       if (responseResult.success) {
-        convertionResult.value = `Success! <a href="${ocaConverterUrl}/${responseResult.filename}">Click here to download OCA Bundle</a>`
+        convertionResult.value = `Success!<ul><li><a href="${ocaConverterUrl}/${responseResult.filename}">Click here to download OCA Bundle</a></li>`
+        if (withDataEntry.value) {
+          convertionResult.value += `<li><a href="${ocaConverterUrl}/${responseResult.data_entry}">Click here to download OCA Data Entry file</a></li>`
+        }
+        convertionResult.value += `</ul>`
       } else {
         const errors: string[] = responseResult.errors
         console.error(errors)
@@ -147,6 +158,8 @@ export default defineComponent({
         errors.forEach(e => convertionResult.value += `<li>${e}</li>`)
         convertionResult.value += '</ul>'
       }
+
+      resetForm()
     }
     /* eslint-enable */
 
@@ -155,6 +168,7 @@ export default defineComponent({
       referenceFiles.value = []
       credentialLayoutFile.value = null
       formLayoutFile.value = null
+      withDataEntry.value = false
     }
 
     return {
@@ -164,7 +178,8 @@ export default defineComponent({
       rootFile,
       referenceFiles,
       credentialLayoutFile,
-      formLayoutFile
+      formLayoutFile,
+      withDataEntry
     }
   }
 })
