@@ -34,7 +34,7 @@
                 When any of attributes in OCA file is a
                 <a
                   target="_blank"
-                  href="https://oca.colossi.network/v1.0.0.html#attribute-type">
+                  href="https://oca.colossi.network/specification/#attribute-type">
                   Reference or Array[Reference] type</a
                 >, you can compose it's OCA files into OCA Bundle.
               </li>
@@ -44,8 +44,7 @@
                   target="_blank"
                   href="https://github.com/THCLab/oca-html-preview-demo/tree/main/examples/layout/credential.yaml">
                   See example</a
-                >. If not provided, Credential Layout Overlay will be generated
-                with default layout.
+                >.
               </li>
               <li>
                 <b>OCA form layout file (YML/YAML)</b><br />
@@ -53,8 +52,11 @@
                   target="_blank"
                   href="https://github.com/THCLab/oca-html-preview-demo/tree/main/examples/layout/form.yaml">
                   See example</a
-                >. If not provided, Form Layout Overlay will be generated with
-                default layout.
+                >.
+              </li>
+              <li>
+                <b>Data Entry file</b><br />
+                Generated XLSX file for capturing data
               </li>
             </ul>
           </q-card-section>
@@ -75,14 +77,41 @@
           accept=".xls,.xlsx"
           multiple />
 
-        <q-file
-          v-model="credentialLayoutFile"
-          label="Select Credential Layout file"
-          accept=".yml,.yaml" />
-        <q-file
-          v-model="formLayoutFile"
-          label="Select Form Layout file"
-          accept=".yml,.yaml" />
+        <div class="row items-center">
+          <div class="col-5">
+            <q-checkbox
+              v-model="withDefaultCredentialLayout"
+              label="Generate default Credential Layout" />
+          </div>
+          <div class="col-2">
+            <div class="row justify-center">or</div>
+          </div>
+          <div class="col-5">
+            <q-file
+              v-model="credentialLayoutFile"
+              label="Select Credential Layout file"
+              accept=".yml,.yaml"
+              dense />
+          </div>
+        </div>
+
+        <div class="row items-center">
+          <div class="col-5">
+            <q-checkbox
+              v-model="withDefaultFormLayout"
+              label="Generate default Form Layout" />
+          </div>
+          <div class="col-2">
+            <div class="row justify-center">or</div>
+          </div>
+          <div class="col-5">
+            <q-file
+              v-model="formLayoutFile"
+              label="Select Form Layout file"
+              accept=".yml,.yaml"
+              dense />
+          </div>
+        </div>
 
         <q-checkbox
           v-model="withDataEntry"
@@ -104,7 +133,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, getCurrentInstance } from 'vue'
+import { defineComponent, ref, watch, getCurrentInstance } from 'vue'
 import { AxiosInstance } from 'axios'
 
 export default defineComponent({
@@ -119,12 +148,35 @@ export default defineComponent({
     const converterHelpExpanded = ref(true)
     const rootFile = ref()
     const referenceFiles = ref([])
+    const withDefaultCredentialLayout = ref(false)
     const credentialLayoutFile = ref()
+    const withDefaultFormLayout = ref(false)
     const formLayoutFile = ref()
     const withDataEntry = ref(false)
     const convertionResult = ref('')
 
     const ocaConverterUrl = 'https://tool.oca.argo.colossi.network'
+
+    watch(withDefaultCredentialLayout, value => {
+      if (value) {
+        credentialLayoutFile.value = null
+      }
+    })
+    watch(credentialLayoutFile, newFile => {
+      if (newFile) {
+        withDefaultCredentialLayout.value = false
+      }
+    })
+    watch(withDefaultFormLayout, value => {
+      if (value) {
+        formLayoutFile.value = null
+      }
+    })
+    watch(formLayoutFile, newFile => {
+      if (newFile) {
+        withDefaultFormLayout.value = false
+      }
+    })
 
     /* eslint-disable */
     const convert = async () => {
@@ -141,6 +193,8 @@ export default defineComponent({
         formData.append('formLayoutFile', formLayoutFile.value)
       }
 
+      formData.append('withDefaultCredentialLayout', ""+withDefaultCredentialLayout.value)
+      formData.append('withDefaultFormLayout', ""+withDefaultFormLayout.value)
       formData.append('withDataEntry', ""+withDataEntry.value)
 
       const response = await $axios.post(ocaConverterUrl, formData)
@@ -166,7 +220,9 @@ export default defineComponent({
     const resetForm = () => {
       rootFile.value = null
       referenceFiles.value = []
+      withDefaultCredentialLayout.value = false
       credentialLayoutFile.value = null
+      withDefaultFormLayout.value = false
       formLayoutFile.value = null
       withDataEntry.value = false
     }
@@ -177,7 +233,9 @@ export default defineComponent({
       convertionResult,
       rootFile,
       referenceFiles,
+      withDefaultCredentialLayout,
       credentialLayoutFile,
+      withDefaultFormLayout,
       formLayoutFile,
       withDataEntry
     }
@@ -188,6 +246,6 @@ export default defineComponent({
 <style>
 .converter-card {
   min-width: 300px;
-  width: min(500px, 100%);
+  width: min(650px, 100%);
 }
 </style>
