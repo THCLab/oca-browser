@@ -1,6 +1,6 @@
 {
   "name": "oca-browser",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Tool allowing to play with unify data language (OCA)",
   "productName": "OCA Browser",
   "author": "Marcin Olichwiruk <marcin@opensoftware.pl>",

@@ -81,6 +81,7 @@
           <div class="col-5">
             <q-checkbox
               v-model="withDefaultCredentialLayout"
+              size="lg"
               label="Generate default Credential Layout" />
           </div>
           <div class="col-2">
@@ -99,6 +100,7 @@
           <div class="col-5">
             <q-checkbox
               v-model="withDefaultFormLayout"
+              size="lg"
               label="Generate default Form Layout" />
           </div>
           <div class="col-2">
@@ -246,6 +248,6 @@ export default defineComponent({
 <style>
 .converter-card {
   min-width: 300px;
-  width: min(650px, 100%);
+  width: min(700px, 100%);
 }
 </style>
