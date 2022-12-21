@@ -3,7 +3,6 @@ WORKDIR /app
 COPY .eslintrc.js .eslintignore .postcssrc.js .prettierrc babel.config.js quasar.conf.js tsconfig.json ./
 COPY package*.json yarn.lock ./
 RUN yarn install
-COPY .quasar ./.quasar
 COPY public ./public
 COPY src ./src
 RUN yarn build
