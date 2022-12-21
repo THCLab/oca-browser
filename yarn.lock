@@ -4679,52 +4679,33 @@ obuf@^1.0.0, obuf@^1.1.2:
   resolved "https://registry.yarnpkg.com/obuf/-/obuf-1.1.2.tgz#09bea3343d41859ebd446292d11c9d4db619084e"
   integrity sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==
 
-oca.js-form-core@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.1.1.tgz#93c4fbab9995d4914dc3ae980b4395dddb8ec124"
-  integrity sha512-ZLDf3f77CC3b4ed1TgH4h2QllLEeaG0dfP1Ou0RfSp+UiBh64VTIIQb8zUapsKFs/A4JQSSfq7L/9Zf0JDF2ew==
+oca.js-form-core@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.2.3.tgz#ceedc8f9667327ab2ecaf92c9ea0d458c4dd6c5d"
+  integrity sha512-SlPM8yA3S/SsfhVLR0l7HDUTjRfLwIxv80M4q/X9A41ao8XUEc4LYIBQhdoKP0I6MtW8mI9tpuHwUOI4e4L0ig==
   dependencies:
     axios "^0.24.0"
     jszip "^3.7.1"
-    oca.js "0.2.1"
+    oca.js "0.2.21"
 
-oca.js-form-core@^0.2.2:
+oca.js-form-html@^0.2.2:
   version "0.2.2"
-  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.2.2.tgz#1f4b523801784acb116647d18818d8f07712a6b8"
-  integrity sha512-1K/AP6LWTOQqLLGIrnDbqpNtadiVy/CKM0CRdySGDUI0stBbMDTheP6ym1n3feSi+wUQFlZdGpFnCjWTjRUk+Q==
-  dependencies:
-    axios "^0.24.0"
-    jszip "^3.7.1"
-    oca.js "0.2.6"
-
-oca.js-form-html@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.2.1.tgz#633bd71250c0e046e482849e015daebe8a08b9b4"
-  integrity sha512-9fYHgX6PnOGaSQMe/beKjljhM7pyF9pMkUCzaVuw9/zJ5y29mgEXJBCutD5f22IQYWuc0KbnNsoon1mfEGg7Jg==
+  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.2.2.tgz#e7f6b5bbcebc0ff26a42a47390cc6cfe177ed348"
+  integrity sha512-/8f9OzbwnyWhc69nCwu7Jb+RKcCubyu3uix4ANaMSB+2mRIER+vh+EYC1ghG0vmyz6Nevcu6nJMN5kdLmS3wug==
   dependencies:
     "@types/jsdom" "^16.2.14"
     jsdom "^19.0.0"
-    oca.js-form-core "^0.1.1"
+    oca.js-form-core "^0.2.3"
 
 oca.js-form-quasar@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/oca.js-form-quasar/-/oca.js-form-quasar-0.0.6.tgz#12ab15d63b0d7eb1d75bb90d2eb594481690a4a0"
   integrity sha512-+3/RQ7aVMEmKPYOKVlvyopRqnfVbh7DJCqy363FOFiaZBD/F4OXh4dSlDWcE8o8gr9J6fPlM24xNuYmbwd7A3g==
 
-oca.js@0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.1.tgz#dd900d7078b36f6eb29944c1a685cf9806fc74d5"
-  integrity sha512-Y6ZBWCO4sijfLivd+V5RutOJvHydgjEAesClr62GhOc2SO1hTxmgXq8mI4lYAP7OBvTRui9HZJXIqmFILpUzDg==
-
-oca.js@0.2.6:
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.6.tgz#a91a0140a8410865932f120b7dfd2bfc9e3dfe15"
-  integrity sha512-85w6FjKVjfHvYYsLJlVD2OUnk85iZ+5pFnrPNIH0c/FVqh+zuaaiUNg/KgiqOLpFxHd+TpJJlxA9TwCfel0AeA==
-
-oca.js@^0.2.10:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.10.tgz#cd3a5799e2a5ab3dfb4b43439a171cdf48718dd2"
-  integrity sha512-KVSYxGEu77XszyK7DiHHmLqRhpgpaO+CgYROZl/GN3txMZC6exhmpkhFzWeQIa2FEFCFVObLT4acG3P8cB18BQ==
+oca.js@0.2.21, oca.js@^0.2.21:
+  version "0.2.21"
+  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.21.tgz#0024378c1faee33ec5e0dbffd6e97679048a7c12"
+  integrity sha512-SpogyY48R96HVnNdyHYgxPYsTAvMWWc8l4uEx96M9ZYaGBNyK6Eu2QcJ+4LMNK6e2TuNzNAwuQrga9l6knBMfQ==
 
 on-finished@~2.3.0:
   version "2.3.0"
