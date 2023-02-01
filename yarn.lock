@@ -4688,10 +4688,19 @@ oca.js-form-core@^0.2.3:
     jszip "^3.7.1"
     oca.js "0.2.21"
 
-oca.js-form-html@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.2.2.tgz#e7f6b5bbcebc0ff26a42a47390cc6cfe177ed348"
-  integrity sha512-/8f9OzbwnyWhc69nCwu7Jb+RKcCubyu3uix4ANaMSB+2mRIER+vh+EYC1ghG0vmyz6Nevcu6nJMN5kdLmS3wug==
+oca.js-form-core@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/oca.js-form-core/-/oca.js-form-core-0.2.4.tgz#5cc467a999f91750518697f43dbbb759944f6da4"
+  integrity sha512-yz6iguQK1r6MgqXdBz6sh09jrxqM58crHKTbaGjnrBJbhz5g/zPKxsnGrH4mtuDd3+FfN+W1t6J4xuN5nN0T4A==
+  dependencies:
+    axios "^0.24.0"
+    jszip "^3.7.1"
+    oca.js "0.2.27"
+
+oca.js-form-html@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.2.3.tgz#6b97b3fe01099642f464ac243367b82d5d5dd383"
+  integrity sha512-78HH8+N0Jd5N/tkigVQjPiTs/p5So04ONb34JpAkCmQTaCrqkPS8v+HB0KXL4U8inQ8dJwYuJQbOjMo/hhPpYQ==
   dependencies:
     "@types/jsdom" "^16.2.14"
     jsdom "^19.0.0"
@@ -4702,10 +4711,20 @@ oca.js-form-quasar@^0.0.6:
   resolved "https://registry.yarnpkg.com/oca.js-form-quasar/-/oca.js-form-quasar-0.0.6.tgz#12ab15d63b0d7eb1d75bb90d2eb594481690a4a0"
   integrity sha512-+3/RQ7aVMEmKPYOKVlvyopRqnfVbh7DJCqy363FOFiaZBD/F4OXh4dSlDWcE8o8gr9J6fPlM24xNuYmbwd7A3g==
 
-oca.js@0.2.21, oca.js@^0.2.21:
+oca.js@0.2.21:
   version "0.2.21"
   resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.21.tgz#0024378c1faee33ec5e0dbffd6e97679048a7c12"
   integrity sha512-SpogyY48R96HVnNdyHYgxPYsTAvMWWc8l4uEx96M9ZYaGBNyK6Eu2QcJ+4LMNK6e2TuNzNAwuQrga9l6knBMfQ==
+
+oca.js@0.2.27:
+  version "0.2.27"
+  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.27.tgz#314b4a8a8ea04c79cff7801b9786dcab85248d6b"
+  integrity sha512-TkvuNGcSDWhAc/kSoSeRrmMPpQ23xVAIanicIRYNOYsUUuBfrVmCAc0+9L917swPoCHj0ui08QduCNKpj0OZSQ==
+
+oca.js@^0.2.28:
+  version "0.2.28"
+  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.28.tgz#a62b4ef22127a7e21f24d8d8e3c4280170461e8d"
+  integrity sha512-sUOz3tUobiA04gvbWJUmgHuPYYXNvgXpO6kuVWK8FD5TIB5+Y3pDGx3DrEWKRGDfEutAlPii6/1y0hmycQRj/Q==
 
 on-finished@~2.3.0:
   version "2.3.0"
