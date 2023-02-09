@@ -4721,10 +4721,10 @@ oca.js@0.2.27:
   resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.27.tgz#314b4a8a8ea04c79cff7801b9786dcab85248d6b"
   integrity sha512-TkvuNGcSDWhAc/kSoSeRrmMPpQ23xVAIanicIRYNOYsUUuBfrVmCAc0+9L917swPoCHj0ui08QduCNKpj0OZSQ==
 
-oca.js@^0.2.28:
-  version "0.2.28"
-  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.28.tgz#a62b4ef22127a7e21f24d8d8e3c4280170461e8d"
-  integrity sha512-sUOz3tUobiA04gvbWJUmgHuPYYXNvgXpO6kuVWK8FD5TIB5+Y3pDGx3DrEWKRGDfEutAlPii6/1y0hmycQRj/Q==
+oca.js@^0.2.29:
+  version "0.2.29"
+  resolved "https://registry.yarnpkg.com/oca.js/-/oca.js-0.2.29.tgz#a3f6317233e5dd75a75c5fd7acf2817692dd20d2"
+  integrity sha512-jxXmOcxaUbdS/FcgFDPBIJcNquKfuaKKXOoWWPcoUSixyCeuPP83AO7xwM0CUFckEGi/8MxkiwrO9bwIRlovTg==
 
 on-finished@~2.3.0:
   version "2.3.0"
