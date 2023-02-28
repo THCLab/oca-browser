@@ -12,17 +12,36 @@
             multiple />
         </div>
         <div class="col-1" />
-        <div class="col-2">
-          <q-btn
-            size="lg"
-            label="Check"
-            :disable="files.length == 0"
-            @click="validate" />
-        </div>
-        <div class="col-3" />
-      </div>
+        <div class="col-3">
+          <div class="row items-start">
+            <q-btn
+              size="lg"
+              label="Check"
+              :disable="files.length == 0"
+              @click="validate" />
 
-      <br />
+            <q-btn
+              color="grey"
+              round
+              flat
+              dense
+              :icon="validateHelpExpanded ? 'help_outline' : 'help'"
+              @click="validateHelpExpanded = !validateHelpExpanded" />
+          </div>
+
+          <q-slide-transition>
+            <div v-show="validateHelpExpanded">
+              <q-separator />
+              <div class="q-py-sm text-subitle2">
+                This validation tool validates the schema structure and verifies
+                the objectual integrity of the OCA Bundle.
+              </div>
+            </div>
+          </q-slide-transition>
+        </div>
+
+        <q-separator />
+      </div>
 
       <div class="row">
         <div class="col-12">
@@ -109,6 +128,7 @@ export default defineComponent({
     const files = ref([])
     const loading = ref(false)
     const resultsRef = ref({})
+    const validateHelpExpanded = ref(true)
 
     const validate = async () => {
       loading.value = true
@@ -161,6 +181,7 @@ export default defineComponent({
       validate,
       resultsRef,
       loading,
+      validateHelpExpanded,
       files
     }
   }
