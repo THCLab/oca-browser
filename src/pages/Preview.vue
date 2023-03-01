@@ -35,7 +35,7 @@
               <q-separator />
               <div class="q-py-sm text-subitle2">
                 Publish in given namespace selected OCA Bundle to all OCA
-                Repositories set in <a href="/#/settings">Settings</a> page.
+                Repositories.
               </div>
             </div>
           </q-slide-transition>

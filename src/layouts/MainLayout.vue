@@ -74,11 +74,6 @@ const modules = [
       title: 'Validate',
       icon: 'domain_verification',
       path: '/validate'
-    },
-    {
-      title: 'Settings',
-      icon: 'settings',
-      path: '/settings'
     }
   ],
   [
