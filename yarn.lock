@@ -4697,10 +4697,10 @@ oca.js-form-core@^0.2.4:
     jszip "^3.7.1"
     oca.js "0.2.27"
 
-oca.js-form-html@^0.2.6:
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.2.6.tgz#f4e4132d3cd51b5bd179f06e059de13cb8a90657"
-  integrity sha512-lJ0XdKP3TlRi69R7AbTNS6HnnmClF2xyE8iovBBMq1yaFmb0XaP8TtCd2Om2myAfGqkx+NrFZn7RVNRoFLpbZg==
+oca.js-form-html@^0.2.7:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/oca.js-form-html/-/oca.js-form-html-0.2.7.tgz#1208036fd7ea319401586c69df7645a637d3b10f"
+  integrity sha512-yEam3zDND4+zMIGjRmGFhemwGJX6LeA9ynHRsInAtVKbsXkUi3+gMD56NJ2nTZk7wk4nca83ySIlhkN//lESfA==
   dependencies:
     "@types/jsdom" "^16.2.14"
     jsdom "^19.0.0"
