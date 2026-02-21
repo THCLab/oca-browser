@@ -1,0 +1,32 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const addAttributeToBundle: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
+export const addOverlayToBundle: (a: any, b: number, c: number, d: number, e: number, f: any) => [number, number, number];
+export const buildFromOCAfile: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const bundleToJSON: (a: any) => [number, number, number, number];
+export const createBundleWithAttributes: (a: number, b: number, c: any) => [number, number, number];
+export const generateOCAfile: (a: any) => [number, number, number, number];
+export const getBundleAttributes: (a: any) => [number, number, number];
+export const getBundleClassification: (a: any) => [number, number, number, number];
+export const getBundleDigest: (a: any) => [number, number, number, number];
+export const getBundleFlaggedAttributes: (a: any) => [number, number, number];
+export const getBundleType: (a: any) => [number, number, number, number];
+export const getBundleVersion: (a: any) => [number, number, number, number];
+export const getOverlayCount: (a: any) => [number, number, number];
+export const getOverlayNames: (a: any) => [number, number, number];
+export const hasOverlays: (a: any) => [number, number, number];
+export const init: () => void;
+export const loadBundle: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const parseOCAfile: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const removeAttributeFromBundle: (a: any, b: number, c: number) => [number, number, number];
+export const removeOverlayFromBundle: (a: any, b: number, c: number) => [number, number, number];
+export const validateBundleSemantics: (a: any) => [number, number, number];
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_exn_store: (a: number) => void;
+export const __externref_table_alloc: () => number;
+export const __wbindgen_externrefs: WebAssembly.Table;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __externref_table_dealloc: (a: number) => void;
+export const __wbindgen_start: () => void;

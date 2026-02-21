@@ -1,0 +1,23 @@
+--name=patient-record
+ADD ATTRIBUTE patient=refn:patient bmi=refs:EPFtQVmMXhqy8wj07JYPjfTc4zCyRsNRB7141nE22CaV date=DateTime author=Text
+
+ADD OVERLAY META
+  language="en"
+  name="Patient record"
+  description="Patient medical records with BMI calculation"
+
+ADD OVERLAY LABEL
+  language="en"
+  attribute_labels
+    patient="Patient"
+    bmi="Body Mass Index"
+    date="Date"
+    author="Author"
+
+ADD OVERLAY LABEL
+  language="pl"
+  attribute_labels
+    patient="Pacjent"
+    bmi="Wskaźnik BMI"
+    date="Data"
+    author="Autor"

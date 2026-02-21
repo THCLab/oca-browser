@@ -1,0 +1,176 @@
+--name=student-card
+ADD ATTRIBUTE number=Text first_name=Text last_name=Text birth_date=DateTime issue_date=DateTime expiry_date=DateTime issuer=Text id=Text
+
+ADD Overlay META
+  language="en"
+  description="Student Identification Card"
+  name="Student Card"
+
+ADD Overlay META
+  language="pl"
+  description="Karta identyfikacyjna studenta"
+  name="Karta Studenta"
+
+ADD Overlay META
+  language="fr"
+  description="Carte d'identité étudiante"
+  name="Carte Étudiante"
+
+ADD Overlay META
+  language="es"
+  description="Tarjeta de identificación estudiantil"
+  name="Tarjeta de estudiante"
+
+ADD Overlay META
+  language="de"
+  description="Identifikationskarte für Studierende"
+  name="Studentenausweis"
+
+ADD Overlay CHARACTER_ENCODING
+  attribute_character_encodings
+    number="utf-8"
+    first_name="utf-8"
+    last_name="utf-8"
+    birth_date="utf-8"
+    issue_date="utf-8"
+    expiry_date="utf-8"
+    issuer="utf-8"
+    id="utf-8"
+
+ADD Overlay CONFORMANCE
+  attribute_conformances
+    number="M"
+    first_name="M"
+    last_name="M"
+    birth_date="M"
+    issue_date="M"
+    expiry_date="M"
+    issuer="M"
+    id="O"
+
+ADD Overlay FORMAT
+  attribute_formats
+    birth_date="DD.MM.YYYY"
+    issue_date="DD.MM.YYYY"
+    expiry_date="DD.MM.YYYY"
+
+ADD Overlay LABEL
+  language="en"
+  attribute_labels
+    number="Document number"
+    first_name="First name"
+    last_name="Last name"
+    birth_date="Date of birth"
+    issue_date="Date of issue"
+    expiry_date="Date of expiry"
+    issuer="Issuing authority"
+    id="Identification number"
+
+ADD Overlay LABEL
+  language="pl"
+  attribute_labels
+    number="Numer dokumentu"
+    first_name="Imię"
+    last_name="Nazwisko"
+    birth_date="Data urodzenia"
+    issue_date="Data wydania"
+    expiry_date="Data ważności"
+    issuer="Urząd wydający"
+    id="Numer identyfikacyjny"
+
+ADD Overlay LABEL
+  language="fr"
+  attribute_labels
+    number="Numéro de document"
+    first_name="Prénom(s)"
+    last_name="Nom de famille"
+    birth_date="Date de naissance"
+    issue_date="Date de délivrance"
+    expiry_date="Date d'expiration"
+    issuer="Autorité émettrice"
+    id="Numéro d'identification"
+
+ADD Overlay LABEL
+  language="es"
+  attribute_labels
+    number="Número de documento"
+    first_name="Nombre(s)"
+    last_name="Apellido(s)"
+    birth_date="Fecha de nacimiento"
+    issue_date="Fecha de emisión"
+    expiry_date="Fecha de vencimiento"
+    issuer="Autoridad emisora"
+    id="Número de identificación"
+
+ADD Overlay LABEL
+  language="de"
+  attribute_labels
+    number="Dokumentnummer"
+    first_name="Vorname(n)"
+    last_name="Nachname"
+    birth_date="Geburtsdatum"
+    issue_date="Ausstellungsdatum"
+    expiry_date="Ablaufdatum"
+    issuer="Ausstellende Behörde"
+    id="Identifikationsnummer"
+
+ADD Overlay INFORMATION
+  language="en"
+  attribute_information
+    number="Unique identifier of the student card"
+    first_name="Given name(s) of the card holder"
+    last_name="Surname of the card holder"
+    birth_date="Date when the holder was born"
+    issue_date="Date when the card was issued"
+    expiry_date="Date when the card expires"
+    issuer="Institution that issued the card"
+    id="Identification number"
+
+ADD Overlay INFORMATION
+  language="pl"
+  attribute_information
+    number="Unikalny numer legitymacji studenckiej"
+    first_name="Imię/Imiona posiadacza legitymacji"
+    last_name="Nazwisko posiadacza legitymacji"
+    birth_date="Data urodzenia posiadacza"
+    issue_date="Data wydania legitymacji"
+    expiry_date="Data ważności legitymacji"
+    issuer="Instytucja wydająca legitymację"
+    id="Numer identyfikacyjny"
+
+ADD Overlay INFORMATION
+  language="fr"
+  attribute_information
+    number="Identifiant unique de la carte d'étudiant"
+    first_name="Prénom(s) du titulaire de la carte"
+    last_name="Nom de famille du titulaire de la carte"
+    birth_date="Date de naissance du titulaire"
+    issue_date="Date de délivrance de la carte"
+    expiry_date="Date d'expiration de la carte"
+    issuer="Autorité émettrice de la carte"
+    id="Numéro d'identification"
+
+ADD Overlay INFORMATION
+  language="es"
+  attribute_information
+      number="Identificador único de la tarjeta de estudiante"
+      first_name="Nombre(s) del titular de la tarjeta"
+      last_name="Apellido(s) del titular de la tarjeta"
+      birth_date="Fecha de nacimiento del titular"
+      issue_date="Fecha de emisión de la tarjeta"
+      expiry_date="Fecha de vencimiento de la tarjeta"
+      issuer="Autoridad emisora de la tarjeta"
+      id="Número de identificación"
+
+ADD Overlay INFORMATION
+  language="de"
+  attribute_information
+    number="Eindeutige Kennnummer des Studentenausweises"
+    first_name="Vorname(n) der/des Karteninhabers/-in"
+    last_name="Nachname der/des Karteninhabers/-in"
+    birth_date="Geburtsdatum der/des Inhabers/-in"
+    issue_date="Ausstellungsdatum der Karte"
+    expiry_date="Ablaufdatum der Karte"
+    issuer="Ausstellende Institution der Karte"
+    id="Identifikationsnummer"
+

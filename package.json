@@ -6,6 +6,8 @@
   "author": "Marcin Olichwiruk <marcin@opensoftware.pl>",
   "private": true,
   "scripts": {
+    "generate:ocafiles-index": "node scripts/generate-ocafiles-index.js",
+    "prebuild": "npm run generate:ocafiles-index",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --config .prettierrc 'src/**/*.(ts|vue)' --write",
     "dev": "quasar dev",
@@ -20,8 +22,10 @@
     "oca.js-form-core": "^0.2.4",
     "oca.js-form-html": "^0.2.7",
     "oca.js-form-quasar": "^0.0.6",
-    "quasar": "^2.0.0",
+    "quasar": "2.13.0",
+    "vue": "3.2.29",
     "vue-json-viewer": "^3.0.4",
+    "vue-router": "4.0.12",
     "vuex": "^4.0.1"
   },
   "devDependencies": {

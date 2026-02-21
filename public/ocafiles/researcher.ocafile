@@ -1,0 +1,198 @@
+--name=researcher-passport
+--version=1.0.0
+
+# ----------------------------
+# Capture Base: attributes
+# ----------------------------
+ADD ATTRIBUTE passport_number=Text \
+  passport_issuing_country=Text \
+  passport_issuing_authority=Text \
+  passport_date_of_issue=DateTime \
+  passport_date_of_expiry=DateTime \
+  passport_place_of_issue=Text \
+  person_given_name=Text \
+  person_family_name=Text \
+  person_full_name=Text \
+  person_date_of_birth=DateTime \
+  person_place_of_birth=Text \
+  person_nationality=Text \
+  person_sex=Text \
+  person_photo_image=Binary \
+  person_signature_image=Binary \
+  contact_email=Text \
+  contact_phone=Text \
+  contact_website=Text \
+  researcher_orcid=Text \
+  researcher_scopus_id=Text \
+  researcher_researcherid=Text \
+  researcher_institution=Text \
+  researcher_department=Text \
+  researcher_position_title=Text \
+  research_primary_field=Text \
+  research_secondary_fields=[Text] \
+  research_keywords=[Text] \
+  research_interests=[Text] \
+  qualifications=[Text] \
+  publications=[Text] \
+  certificates=[Text]
+
+# ----------------------------
+# META (English)
+# ----------------------------
+ADD OVERLAY meta
+  language="en"
+  name="Researcher Passport"
+  description="Researcher passport schema: core identity + researcher profile, qualifications, interests, publications, and certificates."
+
+# ----------------------------
+# LABEL (English)
+# ----------------------------
+ADD OVERLAY label
+  language="en"
+  attribute_labels
+    passport_number="Passport number"
+    passport_issuing_country="Issuing country"
+    passport_issuing_authority="Issuing authority"
+    passport_date_of_issue="Date of issue"
+    passport_date_of_expiry="Date of expiry"
+    passport_place_of_issue="Place of issue"
+    person_given_name="Given name"
+    person_family_name="Family name"
+    person_full_name="Full name"
+    person_date_of_birth="Date of birth"
+    person_place_of_birth="Place of birth"
+    person_nationality="Nationality"
+    person_sex="Sex"
+    person_photo_image="Portrait photo"
+    person_signature_image="Signature image"
+    contact_email="Email"
+    contact_phone="Phone number"
+    contact_website="Website"
+    researcher_orcid="ORCID iD"
+    researcher_scopus_id="Scopus Author ID"
+    researcher_researcherid="ResearcherID"
+    researcher_institution="Institution"
+    researcher_department="Department"
+    researcher_position_title="Position / Title"
+    research_primary_field="Primary research field"
+    research_secondary_fields="Secondary research fields"
+    research_keywords="Keywords"
+    research_interests="Research interests"
+    qualifications="Qualifications (degree|institution|year)"
+    publications="Publications (doi|title|venue|year)"
+    certificates="Certificates (name|issuer|date|id)"
+
+# ----------------------------
+# FORMAT (recommended patterns)
+# ----------------------------
+ADD OVERLAY format
+  attribute_formats
+    passport_date_of_issue="YYYY-MM-DD"
+    passport_date_of_expiry="YYYY-MM-DD"
+    person_date_of_birth="YYYY-MM-DD"
+    passport_number="^[A-Z0-9]{6,15}$"
+    passport_issuing_country="^[A-Z]{2}$"
+    contact_email="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+    contact_phone="^\\+?[0-9\\-\\s]{7,20}$"
+    researcher_orcid="^\\d{4}-\\d{4}-\\d{4}-\\d{3}[0-9X]$"
+    person_photo_image="image/jpeg"
+    person_signature_image="image/png"
+
+# ----------------------------
+# CONFORMANCE (M=mandatory, O=optional)
+# ----------------------------
+ADD OVERLAY conformance
+  attribute_conformances
+    passport_number="M"
+    passport_issuing_country="M"
+    passport_date_of_issue="M"
+    passport_date_of_expiry="M"
+    person_full_name="M"
+    person_date_of_birth="M"
+    person_nationality="M"
+    person_sex="M"
+    person_photo_image="O"
+    contact_email="O"
+    contact_phone="O"
+    contact_website="O"
+    researcher_orcid="O"
+    researcher_institution="O"
+    researcher_department="O"
+    researcher_position_title="O"
+    research_primary_field="O"
+    research_secondary_fields="O"
+    research_keywords="O"
+    research_interests="O"
+    qualifications="O"
+    publications="O"
+    certificates="O"
+
+# ----------------------------
+# CARDINALITY (arrays and common singular rules)
+# ----------------------------
+ADD OVERLAY cardinality
+  attribute_cardinalities
+    research_secondary_fields="0-"
+    research_keywords="0-"
+    research_interests="0-"
+    qualifications="0-"
+    publications="0-"
+    certificates="0-"
+
+# ----------------------------
+# ENTRY CODE + ENTRY (controlled values example)
+# ----------------------------
+ADD OVERLAY entry_code
+  attribute_entry_codes
+    person_sex=["F","M","X"]
+
+ADD OVERLAY entry
+  language="en"
+  attribute_entries
+    person_sex
+      F="Female"
+      M="Male"
+      X="Unspecified"
+
+# ----------------------------
+# CHARACTER ENCODING
+# ----------------------------
+ADD OVERLAY character_encoding
+  attribute_character_encodings
+    passport_number="utf-8"
+    passport_issuing_country="utf-8"
+    passport_issuing_authority="utf-8"
+    passport_date_of_issue="utf-8"
+    passport_date_of_expiry="utf-8"
+    passport_place_of_issue="utf-8"
+    person_given_name="utf-8"
+    person_family_name="utf-8"
+    person_full_name="utf-8"
+    person_date_of_birth="utf-8"
+    person_place_of_birth="utf-8"
+    person_nationality="utf-8"
+    person_sex="utf-8"
+    person_photo_image="base64"
+    person_signature_image="base64"
+    contact_email="utf-8"
+    contact_phone="utf-8"
+    contact_website="utf-8"
+    researcher_orcid="utf-8"
+    researcher_scopus_id="utf-8"
+    researcher_researcherid="utf-8"
+    researcher_institution="utf-8"
+    researcher_department="utf-8"
+    researcher_position_title="utf-8"
+    research_primary_field="utf-8"
+    research_secondary_fields="utf-8"
+    research_keywords="utf-8"
+    research_interests="utf-8"
+    qualifications="utf-8"
+    publications="utf-8"
+    certificates="utf-8"
+
+# ----------------------------
+# SENSITIVE (privacy / PII / high-risk fields)
+# ----------------------------
+ADD overlay sensitive
+  attributes=[ "passport_number", "person_date_of_birth", "person_place_of_birth", "person_photo_image", "person_signature_image", "contact_email", "contact_phone" ]

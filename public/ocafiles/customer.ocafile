@@ -1,0 +1,14 @@
+--name=Customer
+ADD ATTRIBUTE name=Text address=Text
+ADD OVERLAY LABEL
+    language="en"
+    attribute_labels
+        name="Name"
+        address="Address"
+
+ADD OVERLAY LABEL
+    language="pl"
+    attribute_labels
+        name="Nazwa klienta"
+        address="Adres"
+

@@ -1,0 +1,22 @@
+--name=LineItem
+ADD ATTRIBUTE product=Text quantity=Numeric price=Numeric
+ADD OVERLAY CONFORMANCE
+    attribute_conformances
+      product="M"
+      quantity="M"
+      price="M"
+
+ADD OVERLAY LABEL
+    language="en"
+    attribute_labels
+        product="Product"
+        quantity="Quantity"
+        price="Price"
+
+ADD OVERLAY LABEL
+    language="pl"
+    attribute_labels
+        product="Produkt"
+        quantity="Ilość"
+        price="Cena"
+

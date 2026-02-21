@@ -1,0 +1,20 @@
+--name=patient
+ADD ATTRIBUTE first_name=Text last_name=Text
+
+# Add meta data
+ADD Overlay Meta
+  language="en"
+  name="Patient Record"
+  description="Standard 1 Patient record"
+
+# Add character encoding
+ADD Overlay CHARACTER_ENCODING
+  attribute_character_encodings
+    first_name="utf-8"
+    last_name="utf-8"
+
+ADD OVERLAY LABEL
+  language="en"
+  attribute_labels
+    first_name="First Name"
+    last_name="Last Name"

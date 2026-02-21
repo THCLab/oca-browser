@@ -1,0 +1,46 @@
+[
+  {
+    "file": "chickenGutHealth.ocafile",
+    "label": "Chicken Gut Health"
+  },
+  {
+    "file": "customer.ocafile",
+    "label": "Customer"
+  },
+  {
+    "file": "entrance_credential.ocafile",
+    "label": "Entrance Credential"
+  },
+  {
+    "file": "invoice.ocafile",
+    "label": "Invoice"
+  },
+  {
+    "file": "line-item.ocafile",
+    "label": "Line Item"
+  },
+  {
+    "file": "patient_record.ocafile",
+    "label": "Patient Record"
+  },
+  {
+    "file": "patient.ocafile",
+    "label": "Patient"
+  },
+  {
+    "file": "researcher.ocafile",
+    "label": "Researcher"
+  },
+  {
+    "file": "specification-example.ocafile",
+    "label": "Specification Example"
+  },
+  {
+    "file": "student_card.ocafile",
+    "label": "Student Card"
+  },
+  {
+    "file": "swiss_passport.ocafile",
+    "label": "Swiss Passport"
+  }
+]

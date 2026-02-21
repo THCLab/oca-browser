@@ -1,0 +1,14 @@
+--name=Invoice
+ADD ATTRIBUTE issued=DateTime customer=refn:Customer
+ADD OVERLAY LABEL
+    language="en"
+    attribute_labels
+        issued="Issued date"
+        customer="Customer"
+
+ADD OVERLAY LABEL
+    language="pl"
+    attribute_labels
+        issued="Data wystawienia"
+        customer="Klient"
+
