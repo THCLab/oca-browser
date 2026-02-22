@@ -61,11 +61,6 @@
 const modules = [
   [
     {
-      title: 'Develop',
-      icon: 'architecture',
-      path: '/'
-    },
-    {
       title: 'Preview',
       icon: 'preview',
       path: '/preview'
