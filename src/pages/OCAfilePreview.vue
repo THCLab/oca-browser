@@ -1,302 +1,419 @@
 <template>
-  <q-page class="q-pa-md preview-page">
-    <div class="row q-col-gutter-md">
-      <div class="col-12">
-        <q-card class="preview-card" flat>
-          <q-card-section>
-            <div class="text-h6">OCAfile Input</div>
-          </q-card-section>
-          <q-card-section>
-            <div class="text-subtitle2 q-mb-xs">Overlay Definition Source</div>
-            <q-option-group
-              v-model="overlaySource"
-              :options="overlaySourceOptions"
-              inline
-              dense />
-            <q-file
-              v-if="overlaySource === 'upload'"
-              v-model="overlayFile"
-              filled
-              dense
-              label="Overlay definition file"
-              accept=".overlayfile,.json,.yaml,.yml,.txt"
-              @update:model-value="onOverlayFileChange">
-              <template #prepend>
-                <q-icon name="upload_file" />
-              </template>
-            </q-file>
-            <q-banner
-              v-else
-              dense
-              rounded
-              class="bg-cyan-1 text-cyan-10 q-mt-sm">
-              Core overlay is loaded from local repository:
-              <strong>semantic.overlayfile</strong>
-            </q-banner>
-            <div class="text-caption text-grey-7 q-mt-xs">
-              Choose your own overlay file or use the remote core overlay.
+  <q-page class="experience-page">
+    <q-dialog
+      v-model="jsonDialog.open"
+      transition-show="scale"
+      transition-hide="scale">
+      <q-card class="json-dialog">
+        <q-card-section class="json-dialog__header">
+          <div class="text-subtitle1">{{ jsonDialog.title }}</div>
+          <q-btn flat round dense icon="close" @click="closeJsonDialog" />
+        </q-card-section>
+        <q-separator dark />
+        <q-card-section class="json-dialog__body">
+          <JsonViewer
+            theme="json-theme"
+            :value="jsonDialog.payload"
+            :expand-depth="6" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <transition name="toast">
+      <div
+        v-if="copyToast"
+        class="copy-toast"
+        :class="`copy-toast--${copyToast.intent}`">
+        <span>{{ copyToast.message }}</span>
+        <button
+          class="toast-close"
+          aria-label="Dismiss notification"
+          @click="dismissToast">
+          ×
+        </button>
+      </div>
+    </transition>
+
+    <section class="hero glass-panel glass-panel--strong">
+      <div class="hero__text">
+        <p class="pill-badge">OCA Browser</p>
+        <h1>Preview & Validate your OCA bundle in one flow</h1>
+        <p>
+          Paste an OCAfile, upload a bundle, or continue with an example.
+          Visualise the overlay stack, inspect every SAID, and confirm semantic
+          integrity before sharing it with the world.
+        </p>
+        <div class="hero__actions">
+          <button class="cta-button" @click="scrollToForm">Start now</button>
+          <a
+            class="cta-button cta-button--ghost"
+            href="https://oca.colossi.network"
+            target="_blank"
+            rel="noopener">
+            Documentation
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section
+      v-if="!hasResults"
+      ref="formSection"
+      class="glass-panel input-panel">
+      <div class="panel-title">
+        <div>
+          <h2>OCAFILE input</h2>
+          <p class="text-muted">
+            Paste OCAFILE directly, upload a file or simply select an example to
+            get started.
+          </p>
+        </div>
+        <div class="tab-switch">
+          <button
+            :class="{ 'is-active': ocafileInputMethod === 'paste' }"
+            @click="ocafileInputMethod = 'paste'">
+            Paste OCAFILE
+          </button>
+          <button
+            :class="{ 'is-active': ocafileInputMethod === 'upload' }"
+            @click="ocafileInputMethod = 'upload'">
+            Upload file
+          </button>
+        </div>
+      </div>
+
+      <div v-if="ocafileInputMethod === 'paste'" class="example-select">
+        <div class="label">Examples</div>
+        <q-select
+          v-model="selectedOcafileExample"
+          :options="ocafileExampleOptions"
+          :popup-content-class="'select-popup'"
+          outlined
+          dense
+          emit-value
+          map-options
+          clearable
+          placeholder="Select example OCAFILE"
+          dark />
+        <small class="example-hint">
+          Pick an included example or leave empty to paste your own OCAFILE or
+          OCA bundle.
+        </small>
+      </div>
+
+      <div v-if="repositoryUrl" class="bundle-said-fetch">
+        <div class="label">Load from repository</div>
+        <div class="bundle-said-fetch__controls">
+          <input
+            v-model="bundleSaidInput"
+            type="text"
+            placeholder="Enter bundle SAID" />
+          <button
+            class="cta-button"
+            :disabled="!canFetchBySaid"
+            @click="fetchBundleBySaid">
+            {{ bundleSaidLoading ? 'Loading…' : 'Load bundle' }}
+          </button>
+        </div>
+        <small class="text-muted">Repository: {{ repositoryUrl }}</small>
+      </div>
+
+      <div v-if="ocafileInputMethod === 'paste'" class="input-shell">
+        <textarea
+          v-model="ocafileInput"
+          rows="14"
+          placeholder="Paste your OCAfile or bundle JSON here..."></textarea>
+      </div>
+
+      <div
+        v-else
+        class="upload-drop"
+        @dragover.prevent
+        @drop.prevent="onDropFile">
+        <input
+          ref="bundleFileInput"
+          type="file"
+          class="sr-only"
+          accept=".ocafile,.bundle,.txt,.json"
+          @change="onBundleFileChange" />
+        <Upload class="upload-icon" />
+        <p>
+          {{
+            bundleFileName || 'Drag & drop a .ocafile, .bundle, or .json file'
+          }}
+        </p>
+        <button
+          class="cta-button cta-button--ghost"
+          @click="bundleFileInput?.click()">
+          Select file
+        </button>
+      </div>
+
+      <button
+        class="settings-toggle"
+        @click="showAdvancedSettings = !showAdvancedSettings">
+        <span>{{ showAdvancedSettings ? 'Hide' : 'Additional settings' }}</span>
+        <svg
+          :class="{ 'is-open': showAdvancedSettings }"
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          aria-hidden="true">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      <transition name="advanced">
+        <div v-if="showAdvancedSettings" class="panel-grid advanced-panel">
+          <div>
+            <p class="label">Overlay definition</p>
+            <div class="tab-switch tab-switch--compact">
+              <button
+                :class="{ 'is-active': overlaySource === 'upload' }"
+                @click="overlaySource = 'upload'">
+                Upload
+              </button>
+              <button
+                :class="{ 'is-active': overlaySource === 'core' }"
+                @click="overlaySource = 'core'">
+                Use core
+              </button>
             </div>
-          </q-card-section>
-          <q-card-section>
-            <div class="text-subtitle2 q-mb-xs">OCAfile Source</div>
-            <q-option-group
-              v-model="ocafileSource"
-              :options="ocafileSourceOptions"
-              inline
-              dense />
-            <q-select
-              v-if="ocafileSource === 'example'"
-              v-model="selectedOcafileExample"
-              filled
-              dense
-              emit-value
-              map-options
-              option-value="file"
-              option-label="label"
-              :options="ocafileExamples"
-              :loading="ocafileExamplesLoading"
-              label="Choose OCAfile example"
-              @update:model-value="onOcafileExampleChange" />
-          </q-card-section>
-          <q-card-section class="q-pa-none">
-            <q-input
+            <div v-if="overlaySource === 'upload'" class="input-shell small">
+              <input
+                type="file"
+                accept=".overlayfile,.json,.yaml,.yml,.txt"
+                @change="onOverlayFileChange" />
+            </div>
+            <p v-else class="text-muted">
+              `semantic.overlayfile` from the repository will be preloaded.
+            </p>
+          </div>
+        </div>
+      </transition>
+
+      <div class="actions">
+        <button
+          class="cta-button"
+          :disabled="!canProcess || loading"
+          @click="processBundle()">
+          <Eye class="icon-sm" />
+          Preview & Validate
+        </button>
+        <button class="cta-button cta-button--ghost" @click="resetFlows">
+          Reset
+        </button>
+        <span class="text-muted">{{ ocafileInput.length }} characters</span>
+      </div>
+
+      <p v-if="error" class="error-text">
+        <AlertCircle class="icon-sm" />
+        {{ error }}
+      </p>
+    </section>
+
+    <section v-if="hasResults" ref="resultsSection" class="results-panel">
+      <div class="results-head">
+        <div>
+          <h2>OCA bundle overview</h2>
+          <p class="text-muted">
+            Switch between the 3D overlay stack and OCAFILE.
+          </p>
+        </div>
+      </div>
+
+      <div v-if="bundleResult" class="glass-panel bundle-summary">
+        <div class="bundle-summary__head">
+          <p class="pill-badge">OCA bundle</p>
+          <h3>Bundle details</h3>
+        </div>
+        <div class="bundle-summary__stats">
+          <div>
+            <p class="label">Overlays</p>
+            <strong>{{ overlaysCount }}</strong>
+          </div>
+          <div>
+            <p class="label">Bundle SAID</p>
+            <div class="said-row">
+              <span class="text-mono">{{ bundleSaidSnippet }}</span>
+              <button
+                class="icon-button"
+                :disabled="!bundleSaid"
+                aria-label="Copy bundle SAID"
+                @click="bundleSaid && copy(bundleSaid)">
+                <Copy class="icon-sm" />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="bundle-summary__actions">
+          <button
+            class="cta-button"
+            :disabled="!canPublishBundle"
+            @click="publishBundle">
+            {{ publishing ? 'Publishing…' : 'Publish to Repository' }}
+          </button>
+          <span v-if="repositoryUrl" class="text-muted">
+            Target: {{ repositoryUrl }}
+          </span>
+          <span v-else class="text-muted"> Repository URL not configured </span>
+        </div>
+      </div>
+
+      <div class="card-grid card-grid--two-columns">
+        <div class="glass-panel viz-panel">
+          <div class="viz-panel__head">
+            <div class="view-toggle tab-switch tab-switch--compact">
+              <button
+                :class="{ 'is-active': viewMode === 'preview' }"
+                @click="switchViewMode('preview')">
+                <Layout class="icon-sm" />
+                Preview
+              </button>
+              <button
+                :class="{ 'is-active': viewMode === 'code' }"
+                @click="switchViewMode('code')">
+                <Code2 class="icon-sm" />
+                Code
+              </button>
+            </div>
+          </div>
+          <OverlayStack3D
+            v-if="viewMode === 'preview'"
+            :cards="stackCards"
+            :selected-index="selectedOverlayIndex"
+            :show-capture-base="hasCaptureBase"
+            :capture-base-selected="selectedDetailsKind === 'capture-base'"
+            @select="selectOverlay"
+            @cycle="cycleVariant"
+            @select-capture="toggleCaptureSelection" />
+          <div v-else class="code-panel">
+            <textarea
               v-model="ocafileInput"
-              type="textarea"
-              filled
-              dense
-              placeholder="Paste your OCAfile here..."
-              :rows="16"
-              style="font-family: monospace; font-size: 12px"
-              @input="debouncedParse" />
-          </q-card-section>
-          <q-card-actions align="right">
-            <q-btn
-              flat
-              color="secondary"
-              label="Publish"
-              :loading="publishLoading"
-              :disable="!ocafileInput || publishLoading"
-              @click="publishOcafile" />
-            <q-btn
-              color="primary"
-              label="Parse & Build"
-              :loading="loading"
-              :disable="!ocafileInput || !overlayDefinition || overlayLoading"
-              @click="parseAndBuild" />
-          </q-card-actions>
-          <q-card-section v-if="publishMessage" class="q-pt-none">
-            <q-banner
-              dense
-              rounded
-              :class="
-                publishStatus === 'success'
-                  ? 'bg-green-1 text-green-9'
-                  : 'bg-red-1 text-red-9'
-              ">
-              {{ publishMessage }}
-            </q-banner>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <div class="row q-col-gutter-md q-mt-md preview-output-grid">
-      <div class="col-12 col-lg-7">
-        <q-card class="preview-card" flat>
-          <q-card-section>
-            <div class="text-h6">OCABundle Output</div>
-          </q-card-section>
-          <q-card-section class="q-pa-none">
-            <div v-if="error" class="text-negative q-pa-sm">
-              <q-icon name="error" />
-              {{ error }}
+              rows="18"
+              class="code-panel__area"></textarea>
+            <div class="code-panel__meta">
+              {{ ocafileInput.length }} characters
             </div>
-            <div
-              v-else-if="!bundleResult"
-              class="text-grey-6 text-center q-pa-md">
-              <div>Enter an OCAfile and click "Parse & Build"</div>
-            </div>
-            <div v-else>
-              <q-tabs
-                v-model="tab"
-                dense
-                class="text-grey"
-                active-color="primary"
-                indicator-color="primary"
-                align="justify"
-                narrow-indicator>
-                <q-tab name="overlays" label="Overlays" />
-                <q-tab name="json" label="OCA Bundle (JSON)" />
-              </q-tabs>
+          </div>
+        </div>
 
-              <q-separator />
-
-              <q-tab-panels v-model="tab" class="output-tab-panels">
-                <q-tab-panel name="json">
-                  <json-viewer
-                    v-if="bundleResult"
-                    :value="bundleResult"
-                    :expand-depth="4" />
-                </q-tab-panel>
-
-                <q-tab-panel name="overlays">
-                  <div
-                    v-if="overlaysList.length > 0"
-                    class="overlay-stack-wrap">
-                    <div class="overlay-stack">
-                      <div
-                        v-for="(overlay, index) in overlaysList"
-                        :key="index"
-                        class="overlay-layer"
-                        role="button"
-                        tabindex="0"
-                        :class="{
-                          'overlay-layer--active':
-                            selectedOverlayIndex === index
-                        }"
-                        :style="getOverlayStyle(overlay, index)"
-                        @mouseenter="selectOverlay(index)"
-                        @focus="selectOverlay(index)"
-                        @keydown.enter="selectOverlay(index)"
-                        @keydown.space.prevent="selectOverlay(index)"
-                        @click="selectOverlay(index)">
-                        <button
-                          v-if="overlay.variants.length > 1"
-                          class="overlay-layer__swap overlay-layer__swap--left"
-                          @click.stop="
-                            switchOverlayVariant(overlay.typeKey, -1, $event)
-                          ">
-                          <q-icon name="chevron_left" />
-                        </button>
-                        <button
-                          v-if="overlay.variants.length > 1"
-                          class="overlay-layer__swap overlay-layer__swap--right"
-                          @click.stop="
-                            switchOverlayVariant(overlay.typeKey, 1, $event)
-                          ">
-                          <q-icon name="chevron_right" />
-                        </button>
-                        <transition
-                          :name="getOverlaySwapTransitionName(overlay.typeKey)">
-                          <div
-                            :key="`${overlay.typeKey}-${overlay.activeVariantIndex}`"
-                            class="overlay-layer__panel">
-                            <div class="overlay-layer__number">
-                              {{ index + 1 }}
-                            </div>
-                            <div class="overlay-layer__content">
-                              <div class="overlay-layer__title">
-                                {{ getOverlayTitle(overlay, index) }}
-                              </div>
-                              <div class="overlay-layer__meta">
-                                {{
-                                  typeof overlay.overlay.language === 'string'
-                                    ? overlay.overlay.language
-                                    : ''
-                                }}
-                                <span v-if="overlay.variants.length > 1">
-                                  {{ getOverlayVariantCounter(overlay) }}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </transition>
-                      </div>
-
-                      <div
-                        v-if="hasCaptureBase"
-                        class="capture-base-layer"
-                        :class="{
-                          'capture-base-layer--active':
-                            selectedDetailsKind === 'capture-base'
-                        }"
-                        role="button"
-                        tabindex="0"
-                        @click="selectedDetailsKind = 'capture-base'"
-                        @focus="selectedDetailsKind = 'capture-base'"
-                        @keydown.enter="selectedDetailsKind = 'capture-base'"
-                        @keydown.space.prevent="
-                          selectedDetailsKind = 'capture-base'
-                        ">
-                        <div class="capture-base-layer__number">CB</div>
-                        <div class="capture-base-layer__content">
-                          <div class="capture-base-layer__title">
-                            Capture Base
-                          </div>
-                          <div class="capture-base-layer__meta">
-                            Base attributes and classification
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else class="text-grey-6 q-pa-md">
-                    No overlays in bundle
-                  </div>
-                </q-tab-panel>
-              </q-tab-panels>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-lg-5">
-        <q-card flat bordered class="overlay-details">
-          <q-card-section class="row items-center justify-between">
-            <div class="text-subtitle2">{{ selectedDetailsTitle }}</div>
-            <div
-              v-if="
-                selectedDetailsKind === 'overlay' &&
-                selectedOverlayCard &&
-                selectedOverlayCard.variants.length > 1
-              "
-              class="row items-center q-gutter-xs">
-              <q-btn
-                dense
-                round
-                flat
-                icon="chevron_left"
+        <div class="glass-panel details-panel">
+          <div class="details-panel__header">
+            <h4>{{ selectedDetailsTitle }}</h4>
+          </div>
+          <div
+            v-if="
+              selectedDetailsKind === 'capture-base' &&
+              bundleResult?.capture_base
+            "
+            class="details-panel__body">
+            <p class="text-muted">Capture base SAID</p>
+            <p class="text-mono">
+              {{ bundleResult.capture_base.d || 'Unavailable' }}
+            </p>
+            <div class="details-panel__json">
+              <JsonViewer
+                theme="json-theme"
+                :value="bundleResult.capture_base"
+                :expand-depth="3" />
+              <button
+                class="json-expand"
                 @click="
-                  switchOverlayVariant(selectedOverlayCard.typeKey, -1)
-                " />
-              <div class="text-caption text-grey-8">
-                {{ selectedOverlayCard.activeVariantIndex + 1 }} /
-                {{ selectedOverlayCard.variants.length }}
-              </div>
-              <q-btn
-                dense
-                round
-                flat
-                icon="chevron_right"
-                @click="switchOverlayVariant(selectedOverlayCard.typeKey, 1)" />
+                  openJsonDialog(bundleResult.capture_base, 'Capture base JSON')
+                ">
+                <Maximize2 class="icon-sm" />
+                Expand
+              </button>
             </div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section>
-            <transition name="overlay-detail-fade" mode="out-in">
-              <json-viewer
-                v-if="selectedDetailsValue"
-                :key="selectedDetailsKey"
-                :value="selectedDetailsValue"
-                :expand-depth="4" />
-              <div v-else key="no-overlay" class="text-grey-6">
-                Select an overlay card or capture base to inspect details.
+          </div>
+          <div v-else-if="selectedOverlayCard" class="details-panel__body">
+            <div class="details-row">
+              <span class="label">Overlay</span>
+              <span>{{
+                getOverlayTitle(selectedOverlayCard, selectedOverlayIndex)
+              }}</span>
+            </div>
+            <div v-if="currentOverlaySaid" class="details-row">
+              <span class="label">SAID</span>
+              <div class="said-row">
+                <span class="text-mono">
+                  {{ formatSaidSnippet(currentOverlaySaid) }}
+                </span>
+                <button
+                  class="icon-button"
+                  aria-label="Copy SAID"
+                  @click="copy(currentOverlaySaid)">
+                  <Copy class="icon-sm" />
+                </button>
               </div>
-            </transition>
-          </q-card-section>
-        </q-card>
+            </div>
+            <div v-if="attributeList.length" class="details-attributes">
+              <p class="label">Attributes</p>
+              <ul>
+                <li v-for="attr in attributeList" :key="attr.key">
+                  <strong>{{ attr.key }}</strong>
+                  <span>{{ attr.value }}</span>
+                </li>
+              </ul>
+            </div>
+            <div class="details-panel__json">
+              <JsonViewer
+                theme="json-theme"
+                :value="selectedOverlayCard.overlay"
+                :expand-depth="3" />
+              <button
+                class="json-expand"
+                @click="
+                  openJsonDialog(
+                    selectedOverlayCard.overlay,
+                    getOverlayTitle(selectedOverlayCard, selectedOverlayIndex)
+                  )
+                ">
+                <Maximize2 class="icon-sm" />
+                Expand
+              </button>
+            </div>
+          </div>
+          <div v-else class="details-placeholder">
+            <p>Select an overlay or capture base to inspect details.</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   </q-page>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref, watch } from 'vue'
+<script lang="ts" setup>
+import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import JsonViewer from 'vue-json-viewer'
+import OverlayStack3D from 'components/preview/OverlayStack3D.vue'
+import {
+  Upload,
+  Eye,
+  AlertCircle,
+  Layout,
+  Code2,
+  Copy,
+  Maximize2
+} from 'lucide-vue-next'
+import {
+  loadOcaJsApi,
+  normalizeErrorValue,
+  isValidationResult
+} from 'src/lib/oca-js'
+import type { Config } from '@/types/config'
 
-const CORE_OVERLAY_URL = '/overlayfiles/semantic.overlayfile'
-const OCA_REPOSITORY_PUBLISH_URL =
-  'https://repository.oca.argo.colossi.network/api/v2/oca-bundles'
+declare const config: Config
+
+type InputMethod = 'paste' | 'upload'
+type OverlaySource = 'upload' | 'core'
 
 interface OcafileExampleEntry {
   file: string
@@ -304,15 +421,7 @@ interface OcafileExampleEntry {
 }
 
 interface OcaJsResult {
-  v: string
-  d: string
-  capture_base: {
-    type: string
-    d: string
-    classification: string
-    attributes: Record<string, string>
-    flagged_attributes: string[]
-  }
+  capture_base?: Record<string, unknown>
   overlays?:
     | Array<Record<string, unknown>>
     | Record<string, Record<string, unknown>>
@@ -329,144 +438,508 @@ interface OverlayCard {
   overlay: OverlayEntry
 }
 
-interface ValidationResult {
+interface StackCardViewModel {
+  typeKey: string
+  title: string
+  subtitle?: string
+  said?: string
+  paletteColor: string
+  variantCount: number
+  activeVariantIndex: number
+}
+
+interface ValidationSummary {
   valid: boolean
-  errors: string[]
+  message: string
+  bundleSaid?: string
+  errors?: string[]
 }
 
-interface OcaJsModule {
-  default: (input?: unknown) => Promise<unknown>
-  parseOCAfile: (ocafileStr: string, overlayFileStr?: string | null) => unknown
-  buildFromOCAfile: (ocafileStr: string, overlaysDir?: string | null) => unknown
-  validateBundleSemantics: (bundle: unknown) => unknown
+const CORE_OVERLAY_URL = '/overlayfiles/semantic.overlayfile'
+
+const ocafileInputMethod = ref<InputMethod>('paste')
+const overlaySource = ref<OverlaySource>('core')
+const ocafileInput = ref('')
+const bundleFileName = ref('')
+const bundleFileInput = ref<HTMLInputElement | null>(null)
+const ocafileExamples = ref<OcafileExampleEntry[]>([])
+const selectedOcafileExample = ref('')
+const bundleSaidInput = ref('')
+const bundleSaidLoading = ref(false)
+const ocafileExampleOptions = computed(() =>
+  ocafileExamples.value.map(entry => ({
+    label: entry.label,
+    value: entry.file
+  }))
+)
+const ocafileExamplesLoading = ref(false)
+const overlayFile = ref<File | null>(null)
+const overlayDefinition = ref('')
+const overlayLoading = ref(false)
+const bundleResult = ref<OcaJsResult | null>(null)
+const validationSummary = ref<ValidationSummary | null>(null)
+const loading = ref(false)
+const error = ref('')
+const selectedOverlayIndex = ref(-1)
+const selectedDetailsKind = ref<'overlay' | 'capture-base'>('overlay')
+const viewMode = ref<'preview' | 'code'>('preview')
+const activeVariantByType = ref<Record<string, number>>({})
+const showAdvancedSettings = ref(false)
+const jsonDialog = ref<{
+  open: boolean
+  title: string
+  payload: unknown | null
+}>({
+  open: false,
+  title: '',
+  payload: null
+})
+
+const publishing = ref(false)
+
+const overlayPalette = [
+  'linear-gradient(135deg,#f97316,#fb923c)',
+  'linear-gradient(135deg,#2563eb,#3b82f6)',
+  'linear-gradient(135deg,#0f766e,#14b8a6)',
+  'linear-gradient(135deg,#9333ea,#c084fc)',
+  'linear-gradient(135deg,#0ea5e9,#67e8f9)',
+  'linear-gradient(135deg,#f43f5e,#fb7185)'
+]
+
+const formSection = ref<HTMLElement | null>(null)
+const resultsSection = ref<HTMLElement | null>(null)
+type ToastIntent = 'success' | 'error'
+interface ToastPayload {
+  message: string
+  intent: ToastIntent
 }
 
-interface OcaJsApi {
-  parseOCAfile: OcaJsModule['parseOCAfile']
-  buildFromOCAfile: OcaJsModule['buildFromOCAfile']
-  validateBundleSemantics: OcaJsModule['validateBundleSemantics']
+const copyToast = ref<ToastPayload | null>(null)
+let copyToastTimer: ReturnType<typeof setTimeout> | null = null
+
+const scrollToForm = () => {
+  formSection.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
-type WindowWithOcaJs = Window & {
-  __ocaJsModule?: OcaJsModule
+const formatSaidSnippet = (value?: string | null) => {
+  if (!value) {
+    return ''
+  }
+  return value.length <= 6 ? value : `${value.slice(0, 6)}…`
 }
 
-let ocaJsApi: OcaJsApi | null = null
-let ocaJsScriptPromise: Promise<OcaJsModule> | null = null
-
-function normalizeErrorValue(value: unknown): string | null {
-  if (value === null || value === undefined) {
-    return null
+const openJsonDialog = (payload: unknown, title: string) => {
+  jsonDialog.value = {
+    open: true,
+    payload,
+    title
   }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim()
-    return trimmed === '' ? null : trimmed
-  }
-
-  if (value instanceof Error) {
-    return value.message
-  }
-
-  if (Array.isArray(value)) {
-    const messages = value
-      .map(item => normalizeErrorValue(item))
-      .filter((item): item is string => item !== null)
-    return messages.length > 0 ? messages.join('; ') : null
-  }
-
-  if (typeof value === 'object') {
-    const objectValue = value as {
-      message?: unknown
-      reason?: unknown
-      details?: unknown
-      error?: unknown
-      Err?: unknown
-    }
-
-    return (
-      normalizeErrorValue(objectValue.message) ??
-      normalizeErrorValue(objectValue.reason) ??
-      normalizeErrorValue(objectValue.details) ??
-      normalizeErrorValue(objectValue.error) ??
-      normalizeErrorValue(objectValue.Err) ??
-      JSON.stringify(value)
-    )
-  }
-
-  return String(value)
 }
 
-function getResultError(result: unknown, operation: string): string | null {
-  if (typeof result !== 'object' || result === null) {
-    return null
-  }
-
-  const resultObject = result as {
-    error?: unknown
-    Err?: unknown
-    errors?: unknown
-  }
-
-  const message =
-    normalizeErrorValue(resultObject.error) ??
-    normalizeErrorValue(resultObject.Err) ??
-    normalizeErrorValue(resultObject.errors)
-
-  return message === null ? null : `${operation}: ${message}`
+const closeJsonDialog = () => {
+  jsonDialog.value.open = false
 }
 
-function isValidationResult(result: unknown): result is ValidationResult {
-  if (typeof result !== 'object' || result === null) {
+const hasResults = computed(() => bundleResult.value !== null)
+
+const canProcess = computed(() => {
+  if (loading.value || overlayLoading.value) {
     return false
   }
+  if (overlayDefinition.value.trim() === '') {
+    return false
+  }
+  return ocafileInput.value.trim() !== ''
+})
 
-  const value = result as { valid?: unknown; errors?: unknown }
-  return typeof value.valid === 'boolean' && Array.isArray(value.errors)
+const overlayEntries = computed<OverlayEntry[]>(() => {
+  if (!bundleResult.value?.overlays) {
+    return []
+  }
+  if (Array.isArray(bundleResult.value.overlays)) {
+    return bundleResult.value.overlays
+  }
+  return Object.values(bundleResult.value.overlays)
+})
+
+const overlaysList = computed<OverlayCard[]>(() => {
+  const groups = new Map<string, OverlayEntry[]>()
+  overlayEntries.value.forEach(entry => {
+    const { typeKey } = parseOverlayType(entry)
+    const existing = groups.get(typeKey)
+    if (existing) {
+      existing.push(entry)
+    } else {
+      groups.set(typeKey, [entry])
+    }
+  })
+  return Array.from(groups.entries()).map(([typeKey, variants]) => {
+    const activeIndex = activeVariantByType.value[typeKey] || 0
+    const overlay = variants[activeIndex] ?? variants[0]
+    const { typeName, version } = parseOverlayType(overlay)
+    return {
+      typeKey,
+      typeName,
+      version,
+      variants,
+      activeVariantIndex: Math.min(activeIndex, variants.length - 1),
+      overlay
+    }
+  })
+})
+
+const stackCards = computed<StackCardViewModel[]>(() =>
+  overlaysList.value.map((card, index) => ({
+    typeKey: card.typeKey,
+    title: getOverlayTitle(card, index),
+    subtitle:
+      typeof card.overlay.language === 'string'
+        ? String(card.overlay.language)
+        : undefined,
+    said: findSaid(card.overlay),
+    paletteColor: overlayPalette[index % overlayPalette.length],
+    variantCount: card.variants.length,
+    activeVariantIndex: card.activeVariantIndex
+  }))
+)
+
+const selectedOverlayCard = computed(() => {
+  const idx = selectedOverlayIndex.value
+  if (idx < 0 || idx >= overlaysList.value.length) {
+    return null
+  }
+  return overlaysList.value[idx]
+})
+const selectedOverlay = computed(
+  () => selectedOverlayCard.value?.overlay ?? null
+)
+const hasCaptureBase = computed(() => Boolean(bundleResult.value?.capture_base))
+const repositoryUrl = computed(() => {
+  try {
+    const raw = config?.env?.OCA_REPOSITORY_URLS ?? ''
+    const first = raw
+      .split(',')
+      .map(entry => entry.trim())
+      .filter(Boolean)[0]
+    return first ?? ''
+  } catch (err) {
+    console.warn('Failed to resolve repository URL', err)
+    return ''
+  }
+})
+const bundleSaid = computed(() => {
+  if (validationSummary.value?.bundleSaid) {
+    return validationSummary.value.bundleSaid
+  }
+  if (bundleResult.value) {
+    return findSaid(bundleResult.value)
+  }
+  return undefined
+})
+const overlaysCount = computed(() => overlaysList.value.length)
+const bundleSaidSnippet = computed(() =>
+  bundleSaid.value ? formatSaidSnippet(bundleSaid.value) : 'Unavailable'
+)
+const bundlesBaseUrl = computed(() => {
+  if (!repositoryUrl.value) {
+    return ''
+  }
+  const normalized = repositoryUrl.value.replace(/\/+$/, '')
+  if (/\/oca-bundles(\/|$)/.test(normalized)) {
+    return normalized
+  }
+  if (/\/api\//.test(normalized)) {
+    return `${normalized}/oca-bundles`
+  }
+  return `${normalized}/api/v2/oca-bundles`
+})
+const canFetchBySaid = computed(() => {
+  if (bundlesBaseUrl.value === '') {
+    return false
+  }
+  if (bundleSaidLoading.value) {
+    return false
+  }
+  return bundleSaidInput.value.trim().length > 0
+})
+const canPublishBundle = computed(
+  () =>
+    bundlesBaseUrl.value !== '' &&
+    ocafileInput.value.trim() !== '' &&
+    !publishing.value
+)
+
+const selectedDetailsTitle = computed(() =>
+  selectedDetailsKind.value === 'capture-base'
+    ? 'Capture base details'
+    : 'Overlay details'
+)
+
+const currentOverlaySaid = computed(() =>
+  selectedOverlay.value ? findSaid(selectedOverlay.value) : ''
+)
+
+const attributeList = computed(() => {
+  const overlay = selectedOverlay.value
+  if (!overlay || typeof overlay !== 'object') {
+    return []
+  }
+  const attrs = (overlay as Record<string, unknown>).attributes
+  if (!attrs || typeof attrs !== 'object') {
+    return []
+  }
+  return Object.entries(attrs as Record<string, unknown>).map(
+    ([key, value]) => ({
+      key,
+      value: String(value)
+    })
+  )
+})
+
+const loadCoreOverlayDefinition = async () => {
+  overlayLoading.value = true
+  try {
+    const response = await fetch(CORE_OVERLAY_URL)
+    if (!response.ok) {
+      throw new Error('Failed to download core overlay definition')
+    }
+    overlayDefinition.value = await response.text()
+    overlayFile.value = null
+  } finally {
+    overlayLoading.value = false
+  }
 }
 
-function normalizeBundleResult(result: unknown): unknown {
+const onOverlayFileChange = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  overlayDefinition.value = ''
+  if (!file) {
+    return
+  }
+  try {
+    overlayDefinition.value = await file.text()
+    overlayFile.value = file
+  } catch (err: unknown) {
+    overlayFile.value = null
+    error.value =
+      normalizeErrorValue(err) ?? 'Failed to read overlay definition file'
+  }
+}
+
+const onBundleFileChange = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) {
+    bundleFileName.value = ''
+    return
+  }
+  try {
+    bundleFileName.value = file.name
+    ocafileInput.value = await file.text()
+  } catch (err) {
+    bundleFileName.value = ''
+    error.value = normalizeErrorValue(err) ?? 'Failed to read bundle file'
+  }
+}
+
+const onDropFile = async (event: DragEvent) => {
+  const file = event.dataTransfer?.files?.[0]
+  if (!file) {
+    return
+  }
+  const fileEvent = new Event('change')
+  const dataTransfer = new DataTransfer()
+  dataTransfer.items.add(file)
+  if (bundleFileInput.value) {
+    bundleFileInput.value.files = dataTransfer.files
+    bundleFileInput.value.dispatchEvent(fileEvent)
+  }
+  try {
+    bundleFileName.value = file.name
+    ocafileInput.value = await file.text()
+  } catch (err) {
+    error.value = normalizeErrorValue(err) ?? 'Failed to read bundle file'
+  }
+}
+
+const loadOcafileExamples = async () => {
+  if (ocafileExamples.value.length > 0) {
+    return
+  }
+  ocafileExamplesLoading.value = true
+  try {
+    const response = await fetch('/ocafiles/index.json')
+    if (!response.ok) {
+      throw new Error('Failed to load OCAfile examples list')
+    }
+    const payload = (await response.json()) as Array<
+      OcafileExampleEntry | string
+    >
+    ocafileExamples.value = payload.map(item =>
+      typeof item === 'string' ? { file: item, label: item } : item
+    )
+  } finally {
+    ocafileExamplesLoading.value = false
+  }
+}
+
+const onOcafileExampleChange = async (fileName: string) => {
+  if (!fileName) {
+    return
+  }
+  try {
+    const response = await fetch(`/ocafiles/${fileName}`)
+    if (!response.ok) {
+      throw new Error(`Failed to load example OCAfile: ${fileName}`)
+    }
+    ocafileInput.value = await response.text()
+  } catch (err: unknown) {
+    error.value =
+      normalizeErrorValue(err) ?? `Failed to load example OCAfile: ${fileName}`
+  }
+}
+
+const fetchBundleBySaid = async () => {
+  if (bundlesBaseUrl.value === '') {
+    showToast('Repository URL not configured', 'error')
+    return
+  }
+  const said = bundleSaidInput.value.trim()
+  if (said === '') {
+    showToast('Provide a bundle SAID', 'error')
+    return
+  }
+  bundleSaidLoading.value = true
+  try {
+    const base = bundlesBaseUrl.value
+    const encoded = encodeURIComponent(said)
+    const url = `${base}/${encoded}/ocafile`
+    const response = await fetch(url, { headers: { accept: '*/*' } })
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(text || 'Bundle not found in repository')
+    }
+    const content = await response.text()
+    ocafileInputMethod.value = 'paste'
+    ocafileInput.value = content
+    bundleFileName.value = `${said}.ocafile`
+    bundleSaidInput.value = ''
+    await processBundle({ skipScroll: true })
+  } catch (err) {
+    error.value =
+      normalizeErrorValue(err) ?? 'Failed to load bundle from repository'
+  } finally {
+    bundleSaidLoading.value = false
+  }
+}
+
+const processBundle = async (options?: { skipScroll?: boolean }) => {
+  const { skipScroll = false } = options ?? {}
+  if (!canProcess.value) {
+    return
+  }
+  loading.value = true
+  error.value = ''
+  try {
+    const api = await loadOcaJsApi()
+    const ocafile = ocafileInput.value.trim()
+    const overlay = overlayDefinition.value.trim()
+    const parseResult = api.parseOCAfile(ocafile, overlay)
+    const parseError = getResultError(parseResult, 'Failed to parse OCAfile')
+    if (parseError) {
+      throw new Error(parseError)
+    }
+    const buildResult = api.buildFromOCAfile(ocafile, overlay)
+    const buildError = getResultError(buildResult, 'Failed to build OCABundle')
+    if (buildError) {
+      throw new Error(buildError)
+    }
+    const normalized = normalizeBundleResult(buildResult) as OcaJsResult
+    bundleResult.value = normalized
+    selectedOverlayIndex.value = 0
+    selectedDetailsKind.value =
+      overlayEntries.value.length > 0 ? 'overlay' : 'capture-base'
+    activeVariantByType.value = {}
+    viewMode.value = 'preview'
+    runValidation(api, normalized)
+    await nextTick()
+    if (!skipScroll) {
+      resultsSection.value?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }
+  } catch (err: unknown) {
+    error.value = normalizeErrorValue(err) ?? 'Failed to process bundle'
+    bundleResult.value = null
+    validationSummary.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+const runValidation = (
+  api: Awaited<ReturnType<typeof loadOcaJsApi>>,
+  bundle: unknown
+) => {
+  const validation = api.validateBundleSemantics(bundle)
+  if (!isValidationResult(validation)) {
+    validationSummary.value = {
+      valid: false,
+      message: 'Validation returned an unexpected response'
+    }
+    return
+  }
+  validationSummary.value = {
+    valid: validation.valid,
+    message: validation.valid
+      ? 'Bundle integrity confirmed. SAIDs match their content.'
+      : 'Integrity check failed. See reported issues below.',
+    bundleSaid: findSaid(bundle),
+    errors: validation.errors
+  }
+}
+
+const getResultError = (result: unknown, operation: string): string | null => {
+  if (typeof result !== 'object' || result === null) {
+    return null
+  }
+  const payload = result as { error?: unknown; Err?: unknown; errors?: unknown }
+  const message =
+    normalizeErrorValue(payload.error) ??
+    normalizeErrorValue(payload.Err) ??
+    normalizeErrorValue(payload.errors)
+  return message ? `${operation}: ${message}` : null
+}
+
+const normalizeBundleResult = (result: unknown): unknown => {
   if (typeof result !== 'string') {
     return result
   }
-
   const trimmed = result.trim()
   if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
     return result
   }
-
   try {
-    return JSON.parse(trimmed)
+    return JSON.parse(trimmed) as unknown
   } catch {
     return result
   }
 }
 
-function parseOverlayType(overlay: OverlayEntry): {
-  typeKey: string
-  typeName: string
-  version: string
-} {
+const parseOverlayType = (overlay: OverlayEntry) => {
   const fallback = {
     typeKey: 'overlay/unknown',
     typeName: 'unknown',
     version: ''
   }
-
-  const typeValue = overlay.type
-  if (typeof typeValue !== 'string') {
+  const value = overlay.type
+  if (typeof value !== 'string') {
     return fallback
   }
-
-  const parts = typeValue.split('/').filter(Boolean)
+  const parts = value.split('/').filter(Boolean)
   if (parts.length < 2) {
-    return {
-      typeKey: typeValue,
-      typeName: typeValue,
-      version: ''
-    }
+    return { typeKey: value, typeName: value, version: '' }
   }
-
   return {
     typeKey: parts.slice(0, 2).join('/'),
     typeName: parts[1],
@@ -474,912 +947,856 @@ function parseOverlayType(overlay: OverlayEntry): {
   }
 }
 
-function shadeHexColor(hex: string, delta: number): string {
-  const source = hex.replace('#', '')
-  if (!/^[0-9a-fA-F]{6}$/.test(source)) {
-    return hex
+const selectOverlay = (index: number) => {
+  if (
+    selectedDetailsKind.value === 'overlay' &&
+    selectedOverlayIndex.value === index
+  ) {
+    selectedOverlayIndex.value = -1
+    return
   }
-
-  const clamp = (value: number) => Math.max(0, Math.min(255, value))
-  const r = clamp(parseInt(source.slice(0, 2), 16) + delta)
-  const g = clamp(parseInt(source.slice(2, 4), 16) + delta)
-  const b = clamp(parseInt(source.slice(4, 6), 16) + delta)
-
-  return `#${[r, g, b]
-    .map(channel => channel.toString(16).padStart(2, '0'))
-    .join('')}`
+  selectedOverlayIndex.value = index
+  selectedDetailsKind.value = 'overlay'
 }
 
-async function loadOcaJsApi(): Promise<OcaJsApi> {
-  if (ocaJsApi !== null) {
-    return ocaJsApi
+const toggleCaptureSelection = () => {
+  if (selectedDetailsKind.value === 'capture-base') {
+    selectedDetailsKind.value = 'overlay'
+    selectedOverlayIndex.value = -1
+    return
   }
-
-  const module = await loadOcaJsModuleFromPublic()
-
-  await module.default()
-
-  ocaJsApi = {
-    parseOCAfile: module.parseOCAfile,
-    buildFromOCAfile: module.buildFromOCAfile,
-    validateBundleSemantics: module.validateBundleSemantics
-  }
-
-  return ocaJsApi
+  selectedDetailsKind.value = 'capture-base'
 }
 
-function loadOcaJsModuleFromPublic(): Promise<OcaJsModule> {
-  const ocaWindow = window as WindowWithOcaJs
-  if (ocaWindow.__ocaJsModule !== undefined) {
-    return Promise.resolve(ocaWindow.__ocaJsModule)
+const cycleVariant = ({
+  typeKey,
+  direction
+}: {
+  typeKey: string
+  direction: 'next' | 'prev'
+}) => {
+  const card = overlaysList.value.find(item => item.typeKey === typeKey)
+  if (!card || card.variants.length <= 1) {
+    return
   }
-
-  if (ocaJsScriptPromise !== null) {
-    return ocaJsScriptPromise
+  const modifier = direction === 'next' ? 1 : -1
+  const nextIndex =
+    (card.activeVariantIndex + modifier + card.variants.length) %
+    card.variants.length
+  activeVariantByType.value = {
+    ...activeVariantByType.value,
+    [typeKey]: nextIndex
   }
-
-  ocaJsScriptPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.type = 'module'
-    script.src = '/oca-js/loader.js'
-
-    script.onload = () => {
-      if (ocaWindow.__ocaJsModule === undefined) {
-        reject(new Error('Loaded /oca-js/loader.js but OCA module is missing'))
-        return
-      }
-
-      resolve(ocaWindow.__ocaJsModule)
-    }
-
-    script.onerror = () => {
-      reject(new Error('Failed to load /oca-js/loader.js'))
-    }
-
-    document.head.appendChild(script)
-  })
-
-  return ocaJsScriptPromise
 }
 
-export default defineComponent({
-  name: 'OCAfilePreview',
-  components: { JsonViewer },
-  setup() {
-    const overlaySource = ref<'upload' | 'core'>('upload')
-    const overlaySourceOptions = [
-      { label: 'Upload file', value: 'upload' },
-      { label: 'Use core overlay', value: 'core' }
-    ]
+const resetFlows = () => {
+  ocafileInput.value = ''
+  bundleFileName.value = ''
+  bundleResult.value = null
+  validationSummary.value = null
+  selectedOverlayIndex.value = -1
+  selectedDetailsKind.value = 'overlay'
+  viewMode.value = 'preview'
+  activeVariantByType.value = {}
+  publishing.value = false
+}
 
-    const overlayFile = ref<File | null>(null)
-    const overlayDefinition = ref('')
-    const overlayLoading = ref(false)
+const copy = async (value: string) => {
+  try {
+    await navigator.clipboard.writeText(value)
+    showToast('Copied to clipboard', 'success')
+  } catch (err) {
+    console.warn('Failed to copy', err)
+    showToast('Unable to copy content', 'error')
+  }
+}
 
-    const ocafileSource = ref<'paste' | 'example'>('paste')
-    const ocafileSourceOptions = [
-      { label: 'Paste manually', value: 'paste' },
-      { label: 'Choose example', value: 'example' }
-    ]
-    const ocafileExamples = ref<OcafileExampleEntry[]>([])
-    const selectedOcafileExample = ref('')
-    const ocafileExamplesLoading = ref(false)
-    const publishLoading = ref(false)
-    const publishStatus = ref<'success' | 'error' | null>(null)
-    const publishMessage = ref('')
+const dismissToast = () => {
+  copyToast.value = null
+  if (copyToastTimer !== null) {
+    window.clearTimeout(copyToastTimer)
+    copyToastTimer = null
+  }
+}
 
-    const ocafileInput = ref('')
-    const loading = ref(false)
-    const error = ref('')
-    const bundleResult = ref<OcaJsResult | null>(null)
-    const tab = ref('overlays')
-    const validationResult = ref<ValidationResult | null>(null)
-    const validationLoading = ref(false)
-    const selectedOverlayIndex = ref(0)
-    const selectedDetailsKind = ref<'overlay' | 'capture-base'>('overlay')
-    const activeVariantByType = ref<Record<string, number>>({})
-    const overlaySwapDirectionByType = ref<Record<string, -1 | 1>>({})
+const showToast = (message: string, intent: ToastIntent) => {
+  copyToast.value = { message, intent }
+  if (copyToastTimer !== null) {
+    window.clearTimeout(copyToastTimer)
+    copyToastTimer = null
+  }
+  if (intent === 'error') {
+    return
+  }
+  copyToastTimer = window.setTimeout(() => {
+    copyToast.value = null
+    copyToastTimer = null
+  }, 4000)
+}
 
-    const overlayPalette = [
-      '#ea580c',
-      '#0f766e',
-      '#1d4ed8',
-      '#be123c',
-      '#6d28d9',
-      '#047857'
-    ]
+const switchViewMode = async (mode: 'preview' | 'code') => {
+  if (viewMode.value === mode) {
+    return
+  }
+  const currentY = window.scrollY
+  viewMode.value = mode
+  await nextTick()
+  window.scrollTo({ top: currentY })
+}
 
-    const allOverlays = computed<OverlayEntry[]>(() => {
-      if (bundleResult.value?.overlays === undefined) {
-        return []
-      }
-
-      if (Array.isArray(bundleResult.value.overlays)) {
-        return bundleResult.value.overlays
-      }
-
-      return Object.values(bundleResult.value.overlays)
-    })
-
-    const overlaysList = computed<OverlayCard[]>(() => {
-      const groups = new Map<string, OverlayEntry[]>()
-
-      allOverlays.value.forEach(overlay => {
-        const { typeKey } = parseOverlayType(overlay)
-        if (!groups.has(typeKey)) {
-          groups.set(typeKey, [])
-        }
-        groups.get(typeKey)?.push(overlay)
-      })
-
-      return Array.from(groups.entries()).map(([typeKey, variants]) => {
-        const variantIndex =
-          activeVariantByType.value[typeKey] === undefined
-            ? 0
-            : activeVariantByType.value[typeKey] % variants.length
-
-        const overlay = variants[variantIndex]
-        const { typeName, version } = parseOverlayType(overlay)
-
-        return {
-          typeKey,
-          typeName,
-          version,
-          variants,
-          activeVariantIndex: variantIndex,
-          overlay
-        }
-      })
-    })
-
-    const selectedOverlayCard = computed<OverlayCard | null>(() => {
-      if (overlaysList.value.length === 0) {
-        return null
-      }
-
-      return overlaysList.value[selectedOverlayIndex.value] ?? null
-    })
-
-    const selectedOverlay = computed<OverlayEntry | null>(() => {
-      return selectedOverlayCard.value?.overlay ?? null
-    })
-
-    const hasCaptureBase = computed(() => {
-      return bundleResult.value?.capture_base !== undefined
-    })
-
-    const selectedDetailsTitle = computed(() => {
-      if (selectedDetailsKind.value === 'capture-base') {
-        return 'Capture Base details'
-      }
-
-      return 'Overlay details'
-    })
-
-    const selectedDetailsValue = computed<unknown | null>(() => {
-      if (selectedDetailsKind.value === 'capture-base') {
-        return bundleResult.value?.capture_base ?? null
-      }
-
-      return selectedOverlay.value
-    })
-
-    const selectedDetailsKey = computed(() => {
-      if (selectedDetailsKind.value === 'capture-base') {
-        return 'capture-base'
-      }
-
-      if (selectedOverlayCard.value === null) {
-        return 'none'
-      }
-
-      return `${selectedOverlayCard.value.typeKey}-${selectedOverlayCard.value.activeVariantIndex}`
-    })
-
-    const selectOverlay = (index: number): void => {
-      selectedOverlayIndex.value = index
-      selectedDetailsKind.value = 'overlay'
+const findSaid = (source: unknown): string | undefined => {
+  if (!source || typeof source === 'string') {
+    return typeof source === 'string' && source.trim() !== ''
+      ? source.trim()
+      : undefined
+  }
+  if (typeof source !== 'object') {
+    return undefined
+  }
+  const keys = ['said', 'SAID', 'digest', 'd', 'id']
+  for (const key of keys) {
+    const value = (source as Record<string, unknown>)[key]
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value.trim()
     }
-
-    let debounceTimer: number | null = null
-
-    const debouncedParse = () => {
-      if (debounceTimer !== null) {
-        clearTimeout(debounceTimer)
-      }
-
-      debounceTimer = window.setTimeout(() => {
-        if (
-          overlayDefinition.value.trim() !== '' &&
-          ocafileInput.value.trim() !== ''
-        ) {
-          void parseAndBuild()
-        }
-      }, 1000)
+  }
+  const nestedKeys = ['data', 'bundle', 'result', 'value', 'payload']
+  for (const key of nestedKeys) {
+    const nested = (source as Record<string, unknown>)[key]
+    const found = findSaid(nested)
+    if (found) {
+      return found
     }
+  }
+  return undefined
+}
 
-    const onOverlayFileChange = async (file: File | null) => {
-      overlayDefinition.value = ''
-      if (file === null) {
-        return
-      }
+const getOverlayTitle = (card: OverlayCard, index: number) => {
+  const base = card.typeName || `Overlay ${index + 1}`
+  return card.version ? `${base} (${card.version})` : base
+}
 
-      try {
-        overlayDefinition.value = await file.text()
-      } catch (err: unknown) {
-        overlayFile.value = null
-        error.value =
-          err instanceof Error
-            ? err.message
-            : 'Failed to read overlay definition file'
-      }
-    }
-
-    const loadCoreOverlayDefinition = async () => {
-      overlayLoading.value = true
-      try {
-        const response = await fetch(CORE_OVERLAY_URL)
-        if (!response.ok) {
-          throw new Error('Failed to download core overlay definition')
-        }
-
-        overlayDefinition.value = await response.text()
-        overlayFile.value = null
-      } finally {
-        overlayLoading.value = false
-      }
-    }
-
-    const loadOcafileExamples = async () => {
-      if (ocafileExamples.value.length > 0) {
-        return
-      }
-
-      ocafileExamplesLoading.value = true
-      try {
-        const response = await fetch('/ocafiles/index.json')
-        if (!response.ok) {
-          throw new Error('Failed to load OCAfile examples list')
-        }
-
-        const payload = (await response.json()) as
-          | OcafileExampleEntry[]
-          | string[]
-        ocafileExamples.value = payload.map(item => {
-          if (typeof item === 'string') {
-            return { file: item, label: item }
-          }
-
-          return {
-            file: item.file,
-            label: item.label
-          }
-        })
-
-        if (
-          selectedOcafileExample.value === '' &&
-          ocafileExamples.value.length > 0
-        ) {
-          selectedOcafileExample.value = ocafileExamples.value[0].file
-        }
-      } finally {
-        ocafileExamplesLoading.value = false
-      }
-    }
-
-    const onOcafileExampleChange = async (fileName: string) => {
-      if (fileName.trim() === '') {
-        return
-      }
-
-      try {
-        const response = await fetch(`/ocafiles/${fileName}`)
-        if (!response.ok) {
-          throw new Error(`Failed to load example OCAfile: ${fileName}`)
-        }
-
-        ocafileInput.value = await response.text()
-      } catch (err: unknown) {
-        error.value =
-          normalizeErrorValue(err) ??
-          `Failed to load example OCAfile: ${fileName}`
-      }
-    }
-
-    const parseAndBuild = async () => {
-      if (overlayLoading.value) {
-        error.value = 'Overlay definition is still loading'
-        return
-      }
-
-      if (ocafileInput.value.trim() === '') {
-        bundleResult.value = null
-        validationResult.value = null
-        return
-      }
-
-      if (overlayDefinition.value.trim() === '') {
-        error.value = 'Overlay definition file is required'
-        bundleResult.value = null
-        validationResult.value = null
-        return
-      }
-
-      loading.value = true
-      error.value = ''
-
-      try {
-        const api = await loadOcaJsApi()
-        const ocafile = ocafileInput.value.trim()
-
-        const parseResult = api.parseOCAfile(ocafile, overlayDefinition.value)
-        const parseError = getResultError(
-          parseResult,
-          'Failed to parse OCAfile'
-        )
-        if (parseError !== null) {
-          throw new Error(parseError)
-        }
-
-        const buildResult = api.buildFromOCAfile(
-          ocafile,
-          overlayDefinition.value
-        )
-        const buildError = getResultError(
-          buildResult,
-          'Failed to build OCABundle'
-        )
-        if (buildError !== null) {
-          throw new Error(buildError)
-        }
-
-        const normalizedBuildResult = normalizeBundleResult(buildResult)
-        bundleResult.value = normalizedBuildResult as OcaJsResult
-        selectedOverlayIndex.value = 0
-        selectedDetailsKind.value =
-          allOverlays.value.length > 0 ? 'overlay' : 'capture-base'
-        activeVariantByType.value = {}
-        overlaySwapDirectionByType.value = {}
-
-        validationLoading.value = true
-        const validation = api.validateBundleSemantics(normalizedBuildResult)
-        validationResult.value = isValidationResult(validation)
-          ? validation
-          : {
-              valid: false,
-              errors: ['Validation returned an unexpected response']
-            }
-      } catch (err: unknown) {
-        error.value =
-          normalizeErrorValue(err) ?? 'Failed to parse/build OCAfile'
-        bundleResult.value = null
-        validationResult.value = null
-        console.error(err)
-      } finally {
-        validationLoading.value = false
-        loading.value = false
-      }
-    }
-
-    const publishOcafile = async () => {
-      const ocafile = ocafileInput.value.trim()
-      if (ocafile === '') {
-        publishStatus.value = 'error'
-        publishMessage.value = 'OCAfile is empty, nothing to publish'
-        return
-      }
-
-      publishLoading.value = true
-      publishStatus.value = null
-      publishMessage.value = ''
-
-      try {
-        const response = await fetch(OCA_REPOSITORY_PUBLISH_URL, {
-          method: 'POST',
-          headers: {
-            accept: 'application/json',
-            'Content-Type': 'text/plain'
-          },
-          body: ocafile
-        })
-
-        const responseText = await response.text()
-        let payload: unknown = responseText
-
-        try {
-          payload = JSON.parse(responseText)
-        } catch {
-          // Keep plain text response
-        }
-
-        if (!response.ok) {
-          const reason = normalizeErrorValue(payload) ?? response.statusText
-          throw new Error(`Publish failed: ${reason}`)
-        }
-
-        const getPublishedSaid = (value: unknown): string | null => {
-          if (typeof value === 'string') {
-            const trimmed = value.trim()
-            return trimmed === '' ? null : trimmed
-          }
-
-          if (typeof value !== 'object' || value === null) {
-            return null
-          }
-
-          const record = value as Record<string, unknown>
-          const direct =
-            record.said ?? record.SAID ?? record.digest ?? record.d ?? record.id
-
-          if (typeof direct === 'string' && direct.trim() !== '') {
-            return direct.trim()
-          }
-
-          const nested = record.data ?? record.result ?? record.bundle
-          return getPublishedSaid(nested)
-        }
-
-        const publishedSaid = getPublishedSaid(payload)
-
-        publishStatus.value = 'success'
-        if (publishedSaid !== null) {
-          publishMessage.value =
-            'Your ocafile was uploaded to OCA Repository you can share it using following link: ' +
-            `${OCA_REPOSITORY_PUBLISH_URL}/${encodeURIComponent(
-              publishedSaid
-            )}?w=true`
-        } else {
-          publishMessage.value =
-            'Your ocafile was uploaded to OCA Repository successfully.'
-        }
-      } catch (err: unknown) {
-        publishStatus.value = 'error'
-        publishMessage.value = normalizeErrorValue(err) ?? 'Publish failed'
-      } finally {
-        publishLoading.value = false
-      }
-    }
-
-    const getOverlayTitle = (card: OverlayCard, index: number): string => {
-      const baseName = card.typeName || `Overlay ${index + 1}`
-      return card.version !== '' ? `${baseName} (${card.version})` : baseName
-    }
-
-    const getOverlayVariantCounter = (card: OverlayCard): string => {
-      return `• ${card.activeVariantIndex + 1}/${card.variants.length}`
-    }
-
-    const switchOverlayVariant = (
-      typeKey: string,
-      direction: -1 | 1,
-      event?: Event
-    ): void => {
-      const card = overlaysList.value.find(item => item.typeKey === typeKey)
-      if (card === undefined) {
-        return
-      }
-
-      if (card.variants.length <= 1) {
-        return
-      }
-
-      const nextIndex =
-        (card.activeVariantIndex + direction + card.variants.length) %
-        card.variants.length
-
-      activeVariantByType.value = {
-        ...activeVariantByType.value,
-        [card.typeKey]: nextIndex
-      }
-
-      overlaySwapDirectionByType.value = {
-        ...overlaySwapDirectionByType.value,
-        [card.typeKey]: direction
-      }
-
-      const target = event?.currentTarget as HTMLElement | undefined
-      if (target !== undefined) {
-        target.blur()
-      }
-    }
-
-    const getOverlaySwapTransitionName = (typeKey: string): string => {
-      return overlaySwapDirectionByType.value[typeKey] === -1
-        ? 'overlay-layer-swap-prev'
-        : 'overlay-layer-swap-next'
-    }
-
-    const getOverlayStyle = (
-      card: OverlayCard,
-      index: number
-    ): Record<string, string | number> => {
-      const tilt = index % 2 === 0 ? 60 : 60
-      const variantRatio =
-        card.variants.length <= 1
-          ? 0
-          : card.activeVariantIndex / (card.variants.length - 1)
-      const shadeDelta = Math.round(-20 + variantRatio * 40)
-      const color = shadeHexColor(
-        overlayPalette[index % overlayPalette.length],
-        shadeDelta
-      )
-
-      return {
-        '--overlay-color': color,
-        '--overlay-tilt': `${tilt}deg`,
-        zIndex: overlaysList.value.length - index
-      }
-    }
-
-    watch(
-      overlaySource,
-      async source => {
-        if (source === 'core') {
-          try {
-            await loadCoreOverlayDefinition()
-          } catch (err: unknown) {
-            error.value =
-              normalizeErrorValue(err) ??
-              'Failed to load core overlay definition'
-          }
-          return
-        }
-
-        overlayDefinition.value = ''
-      },
-      { immediate: true }
+const publishBundle = async () => {
+  const ocafilePayload = ocafileInput.value.trim()
+  if (bundlesBaseUrl.value === '' || ocafilePayload === '') {
+    showToast(
+      'Provide an OCAfile and repository URL before publishing',
+      'error'
     )
-
-    watch(
-      ocafileSource,
-      async source => {
-        if (source === 'example') {
-          try {
-            await loadOcafileExamples()
-            if (selectedOcafileExample.value !== '') {
-              await onOcafileExampleChange(selectedOcafileExample.value)
-            }
-          } catch (err: unknown) {
-            error.value =
-              normalizeErrorValue(err) ?? 'Failed to load OCAfile examples'
-          }
-          return
-        }
-
-        ocafileInput.value = ''
-      },
-      { immediate: true }
-    )
-
-    watch(overlaysList, newOverlays => {
-      if (newOverlays.length === 0) {
-        selectedOverlayIndex.value = 0
-        if (hasCaptureBase.value) {
-          selectedDetailsKind.value = 'capture-base'
-        }
-        return
-      }
-
-      if (selectedOverlayIndex.value >= newOverlays.length) {
-        selectedOverlayIndex.value = 0
-      }
-
-      if (selectedDetailsKind.value !== 'capture-base') {
-        selectedDetailsKind.value = 'overlay'
-      }
+    return
+  }
+  publishing.value = true
+  try {
+    const response = await fetch(bundlesBaseUrl.value, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: ocafilePayload
     })
+    const raw = await response.text()
+    type RepositoryResponse = { success?: boolean; errors?: unknown }
+    let payload: RepositoryResponse | null = null
+    try {
+      payload = raw ? (JSON.parse(raw) as RepositoryResponse) : null
+    } catch {
+      payload = null
+    }
+    const successFlag =
+      typeof payload?.success === 'boolean' ? payload.success : undefined
+    const errorsList = Array.isArray(payload?.errors) ? payload?.errors : []
+    if (!response.ok || successFlag === false) {
+      const errorMessage =
+        (errorsList.length > 0 ? errorsList.map(String).join('\n') : raw) ||
+        'Failed to publish OCAfile'
+      throw new Error(errorMessage)
+    }
+    showToast('OCAfile published successfully', 'success')
+  } catch (err) {
+    showToast(normalizeErrorValue(err) ?? 'Failed to publish OCAfile', 'error')
+  } finally {
+    publishing.value = false
+  }
+}
 
-    return {
-      overlaySource,
-      overlaySourceOptions,
-      overlayFile,
-      overlayDefinition,
-      overlayLoading,
-      ocafileSource,
-      ocafileSourceOptions,
-      ocafileExamples,
-      selectedOcafileExample,
-      ocafileExamplesLoading,
-      publishLoading,
-      publishStatus,
-      publishMessage,
-      ocafileInput,
-      loading,
-      error,
-      bundleResult,
-      tab,
-      validationResult,
-      validationLoading,
-      overlaysList,
-      hasCaptureBase,
-      selectedOverlayCard,
-      selectedDetailsKind,
-      selectedDetailsTitle,
-      selectedDetailsValue,
-      selectedDetailsKey,
-      selectedOverlayIndex,
-      selectOverlay,
-      getOverlayTitle,
-      getOverlayVariantCounter,
-      getOverlaySwapTransitionName,
-      getOverlayStyle,
-      switchOverlayVariant,
-      publishOcafile,
-      onOcafileExampleChange,
-      onOverlayFileChange,
-      debouncedParse,
-      parseAndBuild
+watch(
+  overlaySource,
+  async source => {
+    if (source === 'core') {
+      try {
+        await loadCoreOverlayDefinition()
+      } catch (err: unknown) {
+        error.value =
+          normalizeErrorValue(err) ?? 'Failed to load core overlay definition'
+      }
+      return
+    }
+    overlayDefinition.value = ''
+  },
+  { immediate: true }
+)
+
+watch(
+  () => selectedOcafileExample.value,
+  value => {
+    if (value) {
+      void onOcafileExampleChange(value)
     }
   }
+)
+
+watch(overlaysList, newList => {
+  if (newList.length === 0) {
+    selectedOverlayIndex.value = -1
+    selectedDetailsKind.value = hasCaptureBase.value
+      ? 'capture-base'
+      : 'overlay'
+    return
+  }
+  if (selectedOverlayIndex.value >= newList.length) {
+    selectedOverlayIndex.value = newList.length - 1
+  }
+  if (selectedOverlayIndex.value < -1) {
+    selectedOverlayIndex.value = -1
+  }
+  if (selectedDetailsKind.value === 'capture-base' && !hasCaptureBase.value) {
+    selectedDetailsKind.value = 'overlay'
+  }
+})
+
+watch(
+  () => viewMode.value,
+  newMode => {
+    if (newMode === 'preview' && hasResults.value) {
+      void processBundle({ skipScroll: true })
+    }
+  }
+)
+
+onMounted(() => {
+  void loadOcafileExamples()
 })
 </script>
 
-<style lang="scss">
-.preview-page {
-  min-height: 100%;
-}
-
-.preview-output-grid {
-  align-items: stretch;
-}
-
-.preview-card {
-  width: 100%;
-}
-
-.output-tab-panels {
-  height: 70vh;
-  min-height: 560px;
-}
-
-.output-tab-panels .q-tab-panel {
-  height: 100%;
-  overflow: auto;
-}
-
-.overlay-stack-wrap {
-  min-height: 500px;
+<style scoped>
+.experience-page {
+  padding: clamp(1.5rem, 3vw, 3rem);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 8px;
-  background: linear-gradient(140deg, #fff7ed 0%, #eff6ff 100%);
-  border: 1px dashed #d4d4d8;
-  border-radius: 12px;
+  gap: 2rem;
+  color: #fff;
 }
 
-.overlay-stack {
-  width: min(430px, 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.overlay-layer {
-  position: relative;
-  width: 350px;
-  min-height: 175px;
-  border: 0;
-  border-radius: 10px;
-  margin: -50px 0;
-  cursor: pointer;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
-  perspective: 400px;
-  transform: rotateX(var(--overlay-tilt)) rotateZ(20deg);
-  overflow: visible;
-  transition: all 0.8s ease;
-}
-
-.overlay-layer__panel {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 50px 250px;
-  justify-items: start;
-  width: 100%;
-  min-height: 175px;
-  border-radius: inherit;
-  padding: 14px 16px;
-  color: #ffffff;
-  text-align: left;
-  background: linear-gradient(
-      155deg,
-      rgba(255, 255, 255, 0.22) 0%,
-      rgba(15, 23, 42, 0.28) 100%
-    ),
-    var(--overlay-color);
-}
-
-.overlay-layer__swap {
-  position: absolute;
-  top: 50%;
-  z-index: 4;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border: 0;
+.copy-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  padding: 0.75rem 1.25rem;
   border-radius: 999px;
-  display: flex;
+  font-size: 0.9rem;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 6px 14px rgba(2, 6, 23, 0.22);
+  gap: 0.75rem;
+}
+
+.copy-toast--success {
+  background: rgba(34, 197, 94, 0.2);
+  color: #bbf7d0;
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.copy-toast--error {
+  background: rgba(248, 113, 113, 0.25);
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.toast-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.overlay-layer__swap--left {
-  left: -14px;
-}
-
-.overlay-layer__swap--right {
-  right: -14px;
-}
-
-.overlay-layer:hover .overlay-layer__swap,
-.overlay-layer:focus-within .overlay-layer__swap {
-  opacity: 1;
-}
-
-.overlay-layer__swap:hover {
-  transform: translateY(-50%) scale(1.08);
-}
-
-.overlay-layer:hover,
-.overlay-layer:focus-visible,
-.overlay-layer--active {
-  margin: 46px 0;
-  transform: rotateX(var(--overlay-tilt)) rotateZ(20deg) translateY(-4px);
-  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.32);
-  z-index: 999 !important;
-}
-
-.overlay-layer:first-child:hover,
-.overlay-layer:first-child:focus-visible,
-.overlay-layer:first-child.overlay-layer--active {
-  margin: -38px 0;
-}
-
-.capture-base-layer {
-  width: 382px;
-  min-height: 205px;
-  margin: -40px 0 16px;
-  border-radius: 12px;
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  align-items: center;
-  padding: 20px 18px;
-  color: #0f172a;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.16);
-  cursor: pointer;
-  transform: rotateX(50deg) rotateZ(16deg);
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-}
-
-.capture-base-layer:hover,
-.capture-base-layer:focus-visible,
-.capture-base-layer--active {
-  transform: rotateX(40deg) rotateZ(10deg) translateY(-4px);
-  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.22);
-}
-
-.capture-base-layer__number {
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.capture-base-layer__title {
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.capture-base-layer__meta {
-  margin-top: 8px;
-  font-size: 0.82rem;
-  color: #475569;
-}
-
-.overlay-layer__number {
-  font-size: 1.3rem;
-  font-weight: 700;
   line-height: 1;
+  padding: 0;
 }
 
-.overlay-layer__content {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.overlay-layer__title {
-  text-transform: capitalize;
-  font-size: 1rem;
-  letter-spacing: 0.01em;
-  font-weight: 700;
-}
-
-.overlay-layer__meta {
-  margin-top: 6px;
+.toast-close:hover {
   opacity: 0.9;
-  font-size: 0.78rem;
 }
 
-.overlay-details {
-  height: 100%;
-  border-radius: 12px;
-}
-
-.overlay-detail-fade-enter-active,
-.overlay-detail-fade-leave-active {
+.toast-enter-active,
+.toast-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.overlay-detail-fade-enter-from,
-.overlay-detail-fade-leave-to {
+.toast-enter-from,
+.toast-leave-to {
   opacity: 0;
-  transform: translateX(12px);
+  transform: translateY(-10px);
 }
 
-.overlay-layer-swap-next-enter-active,
-.overlay-layer-swap-next-leave-active,
-.overlay-layer-swap-prev-enter-active,
-.overlay-layer-swap-prev-leave-active {
-  transition: opacity 0.34s ease, transform 0.34s ease;
+.hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  padding: clamp(1.5rem, 3vw, 3rem);
 }
 
-.overlay-layer-swap-next-leave-active,
-.overlay-layer-swap-prev-leave-active {
+.hero h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.2;
+}
+
+.hero__text p {
+  max-width: 640px;
+}
+
+.hero__actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.hero__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero__value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.hero__label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.input-panel {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.panel-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.input-shell textarea {
+  min-height: 280px;
+}
+
+.example-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.example-select .label {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+}
+.example-select :deep(.q-field__control) {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.example-select :deep(.q-field__native),
+.example-select :deep(.q-field__input) {
+  color: #fff;
+}
+.example-select :deep(.q-icon),
+.example-select :deep(.q-field__marginal) {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bundle-said-fetch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bundle-said-fetch__controls {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.bundle-said-fetch__controls input {
+  flex: 1;
+  min-width: 220px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  padding: 0.75rem 1rem;
+}
+
+.example-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.example-select .label {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.example-select .example-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.example-select :deep(.q-field__control) {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+}
+
+.example-select :deep(.q-field__native),
+.example-select :deep(.q-field__input) {
+  color: #fff;
+}
+
+.example-select :deep(.q-icon),
+.example-select :deep(.q-field__marginal) {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.upload-drop {
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.panel-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.panel-grid .label {
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.panel-grid select,
+.panel-grid input[type='file'] {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+}
+
+.tab-switch--compact button {
+  padding: 0.35rem 1rem;
+}
+
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.settings-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.settings-toggle svg.is-open {
+  transform: rotate(180deg);
+}
+
+.advanced-panel {
+  width: 100%;
+}
+
+.advanced-enter-active,
+.advanced-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.advanced-enter-from,
+.advanced-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.error-text {
+  color: #f87171;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.bundle-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.bundle-summary__head h3 {
+  margin: 0.25rem 0 0;
+}
+
+.bundle-summary__stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.bundle-summary__stats > div {
+  min-width: 180px;
+}
+
+.bundle-summary__stats strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.bundle-summary__actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.results-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.viz-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.code-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.code-panel__area {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+  padding: 1rem;
+  resize: none;
+}
+
+.code-panel__meta {
+  margin: 0.5rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.viz-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem;
+}
+
+.viz-panel__head .pill-badge {
+  border-radius: 999px;
+}
+
+.details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.details-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 1rem;
+  gap: 1rem;
+}
+
+.details-panel__body {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.details-panel__json {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.json-expand {
+  align-self: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.json-theme {
+  background: #050f1f;
+  white-space: nowrap;
+  color: #525252;
+  font-size: 14px;
+  font-family: Consolas, Menlo, Courier, monospace;
+
+  .jv-ellipsis {
+    color: #999;
+    background-color: #eee;
+    display: inline-block;
+    line-height: 0.9;
+    font-size: 0.9em;
+    padding: 0px 4px 2px 4px;
+    border-radius: 3px;
+    vertical-align: 2px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .jv-button {
+    color: #49b3ff;
+  }
+  .jv-key {
+    color: #fff;
+  }
+  .jv-item {
+    &.jv-array {
+      color: #111111;
+    }
+    &.jv-boolean {
+      color: #fc1e70;
+    }
+    &.jv-function {
+      color: #067bca;
+    }
+    &.jv-number {
+      color: #fc1e70;
+    }
+    &.jv-number-float {
+      color: #fc1e70;
+    }
+    &.jv-number-integer {
+      color: #fc1e70;
+    }
+    &.jv-object {
+      color: #111111;
+    }
+    &.jv-undefined {
+      color: #e08331;
+    }
+    &.jv-string {
+      color: #42b983;
+      word-break: break-word;
+      white-space: normal;
+    }
+  }
+  .jv-code {
+    .jv-toggle {
+      &:before {
+        padding: 0px 2px;
+        border-radius: 2px;
+      }
+      &:hover {
+        &:before {
+          background: #eee;
+        }
+      }
+    }
+  }
+}
+
+.details-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.details-row .label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.said-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.details-attributes ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.details-attributes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.details-placeholder {
+  margin-top: 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.json-dialog {
+  width: min(900px, 90vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(5, 15, 31, 0.95);
+  color: #fff;
+}
+
+.json-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.json-dialog__body {
+  max-height: 75vh;
+  overflow: auto;
+}
+
+.info-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.info-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.info-tags span {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+}
+
+.error-list {
+  grid-column: span 2;
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.icon-sm {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-lg {
+  width: 36px;
+  height: 36px;
+}
+
+.sr-only {
   position: absolute;
-  inset: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
-.overlay-layer-swap-next-enter-from,
-.overlay-layer-swap-prev-leave-to {
-  opacity: 0;
-  transform: translateX(34px);
-}
-
-.overlay-layer-swap-next-leave-to,
-.overlay-layer-swap-prev-enter-from {
-  opacity: 0;
-  transform: translateX(-34px);
-}
-
-@media (max-width: 1023px) {
-  .output-tab-panels {
-    height: 62vh;
-    min-height: 420px;
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .overlay-stack-wrap {
-    min-height: 420px;
-  }
-
-  .overlay-layer {
-    width: min(320px, 92%);
-    min-height: 150px;
-    margin: -42px 0;
-  }
-
-  .capture-base-layer {
-    width: min(352px, 96%);
-    min-height: 180px;
-    margin: -30px 0 12px;
-    grid-template-columns: 52px 1fr;
-  }
-
-  .overlay-layer__panel {
-    grid-template-columns: 42px 1fr;
-    min-height: 150px;
+  .said-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

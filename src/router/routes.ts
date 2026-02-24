@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: '/preview' },
       { path: 'preview', component: () => import('pages/OCAfilePreview.vue') },
-      { path: 'validate', component: () => import('pages/Validate.vue') },
+      { path: 'validate', redirect: '/preview' },
       { path: 'about', component: () => import('pages/About.vue') }
     ]
   },

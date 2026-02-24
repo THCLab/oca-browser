@@ -1,6 +1,6 @@
 const config = {
   env: {
-    OCA_REPOSITORY_URLS: "https://repository.oca.argo.colossi.network/",
+    OCA_REPOSITORY_URLS: "https://repository.oca.argo.colossi.network/api/v2/oca-bundles",
     DATA_VAULT_URLS: "https://data-vault.argo.colossi.network/",
     DEFAULT_LANGUAGE: "en"
   }
