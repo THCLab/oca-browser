@@ -14,16 +14,10 @@
     "noErrorTruncation": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     },
-    "types": [
-      "quasar"
-    ]
+    "types": ["quasar"]
   },
-  "include": [
-    "src/**/*"
-  ],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "src/js/**/*", "src/boot/*"]
 }

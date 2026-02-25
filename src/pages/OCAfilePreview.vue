@@ -62,17 +62,17 @@
       class="glass-panel input-panel">
       <div class="panel-title">
         <div>
-          <h2>OCAFILE input</h2>
+          <h2>OCAFILE or OCA Bundle input</h2>
           <p class="text-muted">
-            Paste OCAFILE directly, upload a file or simply select an example to
-            get started.
+            Paste OCAFILE or OCA BUNDLE (json) directly, upload a file or simply
+            select an example to get started.
           </p>
         </div>
         <div class="tab-switch">
           <button
             :class="{ 'is-active': ocafileInputMethod === 'paste' }"
             @click="ocafileInputMethod = 'paste'">
-            Paste OCAFILE
+            Paste OCAFILE or OCA Bundle Json
           </button>
           <button
             :class="{ 'is-active': ocafileInputMethod === 'upload' }"
