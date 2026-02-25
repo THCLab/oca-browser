@@ -7,6 +7,7 @@ interface OcaJsModule {
   default: (input?: unknown) => Promise<unknown>
   parseOCAfile: (ocafileStr: string, overlayFileStr?: string | null) => unknown
   buildFromOCAfile: (ocafileStr: string, overlaysDir?: string | null) => unknown
+  generateOCAfile: (bundle: unknown) => string
   validateBundleSemantics: (bundle: unknown) => unknown
   loadBundle: (json_str: string, overlay_file?: string | null) => unknown
 }
@@ -14,6 +15,7 @@ interface OcaJsModule {
 interface OcaJsApi {
   parseOCAfile: OcaJsModule['parseOCAfile']
   buildFromOCAfile: OcaJsModule['buildFromOCAfile']
+  generateOCAfile: OcaJsModule['generateOCAfile']
   validateBundleSemantics: OcaJsModule['validateBundleSemantics']
   loadBundle: OcaJsModule['loadBundle']
 }
@@ -89,6 +91,7 @@ async function loadOcaJsApi(): Promise<OcaJsApi> {
   ocaJsApi = {
     parseOCAfile: module.parseOCAfile,
     buildFromOCAfile: module.buildFromOCAfile,
+    generateOCAfile: module.generateOCAfile,
     validateBundleSemantics: module.validateBundleSemantics,
     loadBundle: module.loadBundle
   }

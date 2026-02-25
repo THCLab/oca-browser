@@ -116,25 +116,30 @@ export function createBundleWithAttributes(classification, attributes) {
 }
 
 /**
- * @param {any} bundle
+ * @param {string} bundle
+ * @param {string} overlay_file
  * @returns {string}
  */
-export function generateOCAfile(bundle) {
-    let deferred2_0;
-    let deferred2_1;
+export function generateOCAfile(bundle, overlay_file) {
+    let deferred4_0;
+    let deferred4_1;
     try {
-        const ret = wasm.generateOCAfile(bundle);
-        var ptr1 = ret[0];
-        var len1 = ret[1];
+        const ptr0 = passStringToWasm0(bundle, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(overlay_file, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.generateOCAfile(ptr0, len0, ptr1, len1);
+        var ptr3 = ret[0];
+        var len3 = ret[1];
         if (ret[3]) {
-            ptr1 = 0; len1 = 0;
+            ptr3 = 0; len3 = 0;
             throw takeFromExternrefTable0(ret[2]);
         }
-        deferred2_0 = ptr1;
-        deferred2_1 = len1;
-        return getStringFromWasm0(ptr1, len1);
+        deferred4_0 = ptr3;
+        deferred4_1 = len3;
+        return getStringFromWasm0(ptr3, len3);
     } finally {
-        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+        wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
     }
 }
 
@@ -427,10 +432,6 @@ function __wbg_get_imports() {
             const ret = typeof(arg0) === 'string';
             return ret;
         },
-        __wbg___wbindgen_is_undefined_7b12045c262a3121: function(arg0) {
-            const ret = arg0 === undefined;
-            return ret;
-        },
         __wbg___wbindgen_jsval_eq_ee9380582e278327: function(arg0, arg1) {
             const ret = arg0 === arg1;
             return ret;
@@ -489,10 +490,6 @@ function __wbg_get_imports() {
         },
         __wbg_get_unchecked_fb17614cc2ea6bd4: function(arg0, arg1) {
             const ret = arg0[arg1 >>> 0];
-            return ret;
-        },
-        __wbg_get_with_ref_key_6412cf3094599694: function(arg0, arg1) {
-            const ret = arg0[arg1];
             return ret;
         },
         __wbg_instanceof_ArrayBuffer_5947ef6d17a07122: function(arg0) {

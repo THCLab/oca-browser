@@ -46,7 +46,7 @@ export function bundleToJSON(oca_bundle: any): string;
 
 export function createBundleWithAttributes(classification: string, attributes: any): any;
 
-export function generateOCAfile(bundle: any): string;
+export function generateOCAfile(bundle: string, overlay_file: string): string;
 
 export function getBundleAttributes(oca_bundle: any): any;
 
@@ -87,7 +87,7 @@ export interface InitOutput {
     readonly buildFromOCAfile: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly bundleToJSON: (a: any) => [number, number, number, number];
     readonly createBundleWithAttributes: (a: number, b: number, c: any) => [number, number, number];
-    readonly generateOCAfile: (a: any) => [number, number, number, number];
+    readonly generateOCAfile: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly getBundleAttributes: (a: any) => [number, number, number];
     readonly getBundleClassification: (a: any) => [number, number, number, number];
     readonly getBundleDigest: (a: any) => [number, number, number, number];

@@ -516,6 +516,22 @@ interface ToastPayload {
 
 const copyToast = ref<ToastPayload | null>(null)
 let copyToastTimer: ReturnType<typeof setTimeout> | null = null
+const looksLikeJsonPayload = (value: string) => {
+  const trimmed = value.trim()
+  return trimmed.startsWith('{') || trimmed.startsWith('[')
+}
+
+const tryParseBundleJson = (value: string): OcaJsResult | null => {
+  try {
+    const parsed = JSON.parse(value) as unknown
+    if (parsed && typeof parsed === 'object') {
+      return parsed as OcaJsResult
+    }
+    return null
+  } catch {
+    return null
+  }
+}
 
 const scrollToForm = () => {
   formSection.value?.scrollIntoView({ behavior: 'smooth' })
@@ -841,19 +857,60 @@ const processBundle = async (options?: { skipScroll?: boolean }) => {
   error.value = ''
   try {
     const api = await loadOcaJsApi()
-    const ocafile = ocafileInput.value.trim()
     const overlay = overlayDefinition.value.trim()
-    const parseResult = api.parseOCAfile(ocafile, overlay)
-    const parseError = getResultError(parseResult, 'Failed to parse OCAfile')
-    if (parseError) {
-      throw new Error(parseError)
+    let ocafile = ocafileInput.value.trim()
+    let bundleFromJson: OcaJsResult | null = null
+
+    if (looksLikeJsonPayload(ocafile)) {
+      const parsed = tryParseBundleJson(ocafile)
+      if (parsed) {
+        bundleFromJson = parsed
+        try {
+          const generated = api.generateOCAfile(parsed)
+          if (typeof generated === 'string' && generated.trim() !== '') {
+            ocafile = generated
+            ocafileInput.value = generated
+          }
+        } catch (err) {
+          console.warn('Failed to generate OCAfile from bundle JSON', err)
+        }
+      }
     }
-    const buildResult = api.buildFromOCAfile(ocafile, overlay)
-    const buildError = getResultError(buildResult, 'Failed to build OCABundle')
-    if (buildError) {
-      throw new Error(buildError)
+
+    let normalized: OcaJsResult | null = null
+
+    try {
+      const parseResult = api.parseOCAfile(ocafile, overlay)
+      const parseError = getResultError(parseResult, 'Failed to parse OCAfile')
+      if (parseError) {
+        throw new Error(parseError)
+      }
+      const buildResult = api.buildFromOCAfile(ocafile, overlay)
+      const buildError = getResultError(
+        buildResult,
+        'Failed to build OCABundle'
+      )
+      if (buildError) {
+        throw new Error(buildError)
+      }
+      normalized = normalizeBundleResult(buildResult) as OcaJsResult
+    } catch (err) {
+      if (bundleFromJson) {
+        normalized = bundleFromJson
+        console.warn('Falling back to provided bundle JSON', err)
+      } else {
+        throw err
+      }
     }
-    const normalized = normalizeBundleResult(buildResult) as OcaJsResult
+
+    if (!normalized && bundleFromJson) {
+      normalized = bundleFromJson
+    }
+
+    if (!normalized) {
+      throw new Error('Failed to process OCABundle')
+    }
+
     bundleResult.value = normalized
     selectedOverlayIndex.value = 0
     selectedDetailsKind.value =

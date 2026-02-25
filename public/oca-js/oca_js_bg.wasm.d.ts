@@ -6,7 +6,7 @@ export const addOverlayToBundle: (a: any, b: number, c: number, d: number, e: nu
 export const buildFromOCAfile: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const bundleToJSON: (a: any) => [number, number, number, number];
 export const createBundleWithAttributes: (a: number, b: number, c: any) => [number, number, number];
-export const generateOCAfile: (a: any) => [number, number, number, number];
+export const generateOCAfile: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const getBundleAttributes: (a: any) => [number, number, number];
 export const getBundleClassification: (a: any) => [number, number, number, number];
 export const getBundleDigest: (a: any) => [number, number, number, number];
